@@ -1,14 +1,71 @@
-numpy==1.26.1
-pandas==2.1.1
-matplotlib==3.8.0
-seaborn==0.13.2
-ydata-profiling==4.12.0 # can be removed from requirements before deployment
-plotly==5.17.0
-ppscore==1.1.0 # can be removed from requirements before deployment
-streamlit==1.40.2
-feature-engine==1.6.1
-imbalanced-learn==0.11.0
-scikit-learn==1.3.1
-xgboost==1.7.6
-yellowbrick==1.5 # can be removed from requirements before deployment
-Pillow==10.0.1 # can be removed from requirements before deployment
+# ============================================================================
+# Core Data Science Stack
+# ============================================================================
+pandas>=2.0.0                # Data manipulation and analysis
+numpy>=1.24.0                # Numerical computing
+matplotlib>=3.7.0            # Static visualizations
+seaborn>=0.12.0              # Statistical plotting
+plotly>=5.17.0               # Interactive visualizations
+
+# ============================================================================
+# Dashboard & Web Application
+# ============================================================================
+streamlit>=1.28.0            # Web dashboard framework
+altair>=5.0.0                # Streamlit dependency for chart rendering
+
+# ============================================================================
+# DevOps & Code Quality Tools
+# ============================================================================
+ruff>=0.1.0                  # Fast Python linter (replaces flake8, isort, etc.)
+black>=23.0.0                # Code formatter for consistent style
+
+# Note: Including Ruff and Black in requirements for educational purposes
+# Makes it easy for students to run `make pre-commit` checks
+# In production projects, these are often in separate dev-requirements.txt
+
+# ============================================================================
+# Machine Learning & Statistical Modelling
+# ============================================================================
+scikit-learn>=1.3.0          # Machine learning algorithms
+statsmodels>=0.14.0          # Statistical modelling and regression tools
+xgboost>=2.0.0               # Gradient boosting framework
+imbalanced-learn>=0.11.0     # Handling imbalanced datasets
+scipy>=1.11.0                # Statistical functions and hypothesis testing
+
+# ============================================================================
+# Deep Learning & Computer Vision
+# ============================================================================
+tensorflow>=2.15.0,<2.19.0   # Deep learning framework (avoid 2.19 until stable)
+opencv-python>=4.8.0         # Computer vision library
+Pillow>=10.0.0               # Image processing
+scikit-image>=0.22.0         # Image processing algorithms
+albumentations>=1.3.0        # Advanced image augmentation
+tf-keras-vis==0.8.7          # Grad-CAM and model visualization (latest available)
+
+# ============================================================================
+# Data Download & APIs
+# ============================================================================
+kagglehub>=0.2.0             # Modern Kaggle dataset download library (recommended)
+kaggle>=1.6.0                # Legacy Kaggle API (for authentication setup)
+requests>=2.31.0             # HTTP library
+
+# ============================================================================
+# Jupyter Notebook Environment
+# ============================================================================
+jupyter>=1.0.0               # Jupyter notebook environment
+notebook>=7.0.0              # Jupyter notebook interface
+ipykernel>=6.25.0            # IPython kernel for Jupyter
+nbstripout>=0.6.0            # Strip notebook outputs for version control
+nbdime>=4.0.0                # Notebook diff and merge tools
+tqdm>=4.65.0                 # Progress bars (works in VS Code notebooks)
+
+# ============================================================================
+# Optional Dependencies Detected in Environment (not explicitly required)
+# ============================================================================
+# fqdn==1.5.1
+# isoduration==20.11.0
+# jsonpointer==3.0.0
+# rfc3987-syntax==1.1.0
+# tinycss2==1.4.0
+# uri-template==1.3.0
+# webcolors==24.11.1
