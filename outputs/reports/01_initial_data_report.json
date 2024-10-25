@@ -1,0 +1,31 @@
+{
+  "total_images": 112120,
+  "unique_patients": 30805,
+  "age_min": 1,
+  "age_max": 414,
+  "age_mean": 46.90146271851587,
+  "gender_distribution": {
+    "M": 63340,
+    "F": 48780
+  },
+  "num_disease_classes": 15,
+  "disease_classes": [
+    "Atelectasis",
+    "Cardiomegaly",
+    "Consolidation",
+    "Edema",
+    "Effusion",
+    "Emphysema",
+    "Fibrosis",
+    "Hernia",
+    "Infiltration",
+    "Mass",
+    "No Finding",
+    "Nodule",
+    "Pleural_Thickening",
+    "Pneumonia",
+    "Pneumothorax"
+  ],
+  "multi_label_images": 20796,
+  "max_labels_per_image": 9
+}
