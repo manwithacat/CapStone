@@ -10,6 +10,8 @@ This project leverages deep learning and computer vision techniques to detect an
 **Domain**: Healthcare - Medical Imaging and Diagnostic Support
 **Target Audience**: Radiologists, healthcare administrators, medical AI researchers, hospital decision-makers
 
+**🚀 [View Live Dashboard](https://nihxrays.streamlit.app)** | **📂 [GitHub Repository](https://github.com/manwithacat/CapStone)**
+
 ---
 
 ## Table of Contents

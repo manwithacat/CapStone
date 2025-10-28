@@ -221,5 +221,6 @@ st.markdown("""
     <p><strong>Code Institute Data Analytics & AI Bootcamp - Capstone Project</strong></p>
     <p>NIH Chest X-Ray Disease Detection | November 2025</p>
     <p>🔬 For research and educational purposes only</p>
+    <p><a href="https://github.com/manwithacat/CapStone" target="_blank" style="color: #3498db; text-decoration: none;">📂 View on GitHub</a></p>
 </div>
 """, unsafe_allow_html=True)
