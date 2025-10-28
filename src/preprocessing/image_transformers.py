@@ -162,7 +162,13 @@ class ImageResizer:
 
         resized_images = []
         for img in X:
-            img_resized = img.resize(self.target_size, Image.LANCZOS)
+            # Use Image.Resampling.LANCZOS for Pillow 10+ compatibility
+            # Falls back to Image.LANCZOS for older versions
+            if hasattr(Image, 'Resampling'):
+                resample_filter = Image.Resampling.LANCZOS
+            else:
+                resample_filter = Image.LANCZOS  # type: ignore
+            img_resized = img.resize(self.target_size, resample_filter)
             resized_images.append(img_resized)
 
         return np.array(resized_images, dtype=object)
@@ -297,7 +303,9 @@ class ImageAugmenter:
                     )
                 )
             if noise:
-                transforms.append(A.GaussNoise(var_limit=(10.0, 50.0), p=0.3))
+                # GaussNoise uses std_range in albumentations 1.3+
+                # std_range normalized values (0-1 range)
+                transforms.append(A.GaussNoise(std_range=(0.01, 0.05), p=0.3))
 
         self.transform_pipeline = A.Compose(transforms) if transforms else None
 

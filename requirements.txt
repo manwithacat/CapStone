@@ -19,9 +19,10 @@ altair>=5.0.0                # Streamlit dependency for chart rendering
 # ============================================================================
 ruff>=0.1.0                  # Fast Python linter (replaces flake8, isort, etc.)
 black>=23.0.0                # Code formatter for consistent style
+pyright>=1.1.350             # Type checker (powers VS Code Pylance)
 
-# Note: Including Ruff and Black in requirements for educational purposes
-# Makes it easy for students to run `make pre-commit` checks
+# Note: Including Ruff, Black, and Pyright in requirements for educational purposes
+# Makes it easy for students to run `make pre-commit` and `make typecheck`
 # In production projects, these are often in separate dev-requirements.txt
 
 # ============================================================================

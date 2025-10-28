@@ -2,13 +2,14 @@
 
 PY ?= python
 
-.PHONY: help install lint format pre-commit etl features pipeline app clean
+.PHONY: help install lint format typecheck pre-commit etl features pipeline app clean
 
 help:
 	@echo "Usage:"
 	@echo "  make install    - install dev tools and project deps"
 	@echo "  make lint       - run Ruff lint only"
 	@echo "  make format     - run Black format only"
+	@echo "  make typecheck  - run Pyright type checker (investigate Pylance errors)"
 	@echo "  make pre-commit - run lint and format (recommended before commit)"
 	@echo "  make etl        - run ETL pipeline (raw → cleaned.parquet)"
 	@echo "  make features   - run feature engineering (cleaned → features.parquet)"
@@ -25,6 +26,17 @@ lint:
 
 format:
 	black .
+
+typecheck:
+	@echo "Running Pyright type checker..."
+	@echo "NOTE: This is the same engine that powers VS Code Pylance"
+	@echo ""
+	pyright src/ || true
+	@echo ""
+	@echo "💡 TIP: For full Pylance integration in VS Code:"
+	@echo "   1. Reload VS Code window (Cmd+Shift+P → 'Reload Window')"
+	@echo "   2. Check .vscode/settings.json has src/ in extraPaths"
+	@echo "   3. Install package in editable mode: pip install -e ."
 
 pre-commit: lint format
 	@echo "✅ Pre-commit checks complete"

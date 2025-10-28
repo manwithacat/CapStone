@@ -1,0 +1,38 @@
+{
+  "include": [
+    "src",
+    "app"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*",
+    "data",
+    "outputs",
+    "models"
+  ],
+  "extraPaths": [
+    "src"
+  ],
+  "pythonVersion": "3.9",
+  "pythonPlatform": "All",
+  "typeCheckingMode": "basic",
+  "reportMissingImports": true,
+  "reportMissingTypeStubs": false,
+  "reportUnusedImport": false,
+  "reportUnusedClass": false,
+  "reportUnusedFunction": false,
+  "reportUnusedVariable": false,
+  "reportDuplicateImport": true,
+  "reportOptionalSubscript": false,
+  "reportOptionalMemberAccess": false,
+  "reportOptionalCall": false,
+  "reportOptionalIterable": false,
+  "reportOptionalContextManager": false,
+  "reportOptionalOperand": false,
+  "reportGeneralTypeIssues": false,
+  "reportPrivateUsage": false,
+  "venvPath": ".",
+  "venv": ".venv",
+  "stubPath": "typings"
+}
