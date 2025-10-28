@@ -20,7 +20,6 @@ from src.tabs import (
     render_model_performance_tab,
     render_disease_detector_tab,
     render_clinical_insights_tab,
-    render_radiology_guide_tab,
 )
 
 # ============================================================================
@@ -175,13 +174,12 @@ st.sidebar.markdown("""
 # ============================================================================
 # MAIN CONTENT - Organized into tabs
 # ============================================================================
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "📊 Data Exploration",
     "📈 Hypothesis Validation",
     "📏 Model Performance",
     "🔍 Disease Detector",
-    "💡 Clinical Insights",
-    "📚 Radiology Guide"
+    "💡 Clinical Insights"
 ])
 
 # ============================================================================
@@ -213,12 +211,6 @@ with tab4:
 # ============================================================================
 with tab5:
     render_clinical_insights_tab(df, disease_colors=DISEASE_COLORS)
-
-# ============================================================================
-# TAB 6: RADIOLOGY GUIDE
-# ============================================================================
-with tab6:
-    render_radiology_guide_tab(df, disease_colors=DISEASE_COLORS)
 
 # ============================================================================
 # FOOTER
