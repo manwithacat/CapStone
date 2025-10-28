@@ -32,10 +32,13 @@ def render_radiology_guide_tab(df=None, disease_colors: Optional[Dict[str, str]]
     # SIDEBAR - Navigation for radiology guide
     # ============================================================================
     
-    # Back to dashboard button at top
-    if st.sidebar.button("← Back to Dashboard", width='stretch', type="primary"):
-        st.session_state.view = 'dashboard'
-        st.query_params['view'] = 'dashboard'
+    # Back button - returns to previous view
+    back_label = "← Back"
+    if st.sidebar.button(back_label, width='stretch', type="primary"):
+        # Return to previous view if stored, otherwise go to dashboard
+        previous_view = st.session_state.get('previous_view', 'dashboard')
+        st.session_state.view = previous_view
+        st.query_params['view'] = previous_view
         st.rerun()
 
     st.sidebar.markdown("### Navigation")

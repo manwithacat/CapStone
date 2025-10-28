@@ -218,6 +218,8 @@ and should NOT be used for medical diagnosis without professional radiologist re
 
 # Render navigation button first for immediate interactivity
 if st.sidebar.button("📖 Radiology Guide", width='stretch', type="primary"):
+    # Store current view before navigating away
+    st.session_state.previous_view = st.session_state.get('view', 'dashboard')
     st.session_state.view = 'radiology_guide'
     st.query_params['view'] = 'radiology_guide'
     st.rerun()
