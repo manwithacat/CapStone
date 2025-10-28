@@ -40,7 +40,7 @@ def main():
     # Try importing the preprocessing module
     print("Attempting to import preprocessing module...")
     try:
-        from preprocessing import (
+        from preprocessing import (  # noqa: F401
             ChestXRayPreprocessingPipeline,
             create_train_pipeline,
             create_inference_pipeline
