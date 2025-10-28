@@ -823,6 +823,46 @@ For more detailed troubleshooting, see:
 
 ## Testing and Validation
 
+### Automated Notebook Testing 🆕
+
+All Jupyter notebooks are automatically tested using `pytest` and `nbmake` to ensure:
+- ✅ Notebooks execute without errors
+- ✅ Deterministic results (fixed random seeds)
+- ✅ No broken imports or dependencies
+- ✅ Consistent execution in CI/CD
+
+**Run tests locally:**
+
+```bash
+# Run fast tests (default - recommended)
+make test
+
+# Run only fast notebooks (2 & 4)
+make test-fast
+
+# Run ALL notebooks including slow ones
+make test-all
+
+# Prepare notebooks for testing
+make test-notebooks
+```
+
+**Test categories:**
+- **Fast tests**: Notebooks 02 (EDA) and 04 (Hypothesis Testing)
+- **Slow tests**: Notebook 03 (Image Preprocessing)
+- **Skipped in CI**: Notebook 01 (Data Download - 47GB)
+
+**CI/CD Integration:**
+- Notebooks automatically tested on every push/PR
+- Tests run in parallel across Python 3.9-3.12
+- Slow tests only run on main branch
+- Fast tests complete in ~5 minutes
+
+**Configuration:**
+- `pytest.ini`: Test configuration and markers
+- `.github/workflows/notebook-tests.yml`: CI/CD workflow
+- `scripts/prepare_notebooks_for_testing.py`: Notebook preparation
+
 ### Data Quality Tests
 - Missing value checks
 - Duplicate detection
@@ -831,11 +871,12 @@ For more detailed troubleshooting, see:
 
 ### Model Validation
 - **Cross-Validation**: 5-fold stratified k-fold for classification
-- **Train-Test Split**: 80/20 split with stratification
+- **Train-Test Split**: 70/15/15 split (train/val/test) with patient-level stratification
 - **Baseline Comparison**: Compare against naive baselines
 - **Overfitting Check**: Compare train vs validation metrics
+- **Expert Label Validation**: Test on Google Cloud expert-validated labels
 
-### Unit Tests
+### Unit Tests (Coming Soon)
 Located in `tests/` directory:
 ```bash
 pytest tests/
@@ -850,15 +891,54 @@ pytest tests/
 
 ### Code Quality
 ```bash
+# Run all pre-commit checks
+make pre-commit
+
 # Format code
-black .
+make format  # or: black .
 
 # Lint code
-flake8 src/ app/
+make lint    # or: ruff check .
 
-# Strip notebook outputs
-nbstripout jupyter_notebooks/*.ipynb
+# Type checking
+make typecheck  # or: pyright src/
+
+# Check Pylance configuration
+make check-pylance
 ```
+
+### Test Coverage
+
+**What's Tested:**
+- ✅ Notebook execution (all cells run top-to-bottom)
+- ✅ Import statements (no missing dependencies)
+- ✅ Data loading and path resolution
+- ✅ Preprocessing pipeline
+- ✅ Statistical analysis reproducibility
+- ✅ Visualization generation
+
+**What's NOT Tested in CI:**
+- ❌ Large data downloads (Notebook 01)
+- ❌ Full image preprocessing (marked as slow)
+- ❌ Deep learning model training (future notebooks)
+
+### Deterministic Testing
+
+All notebooks include deterministic random seeds:
+```python
+import random
+import numpy as np
+
+RANDOM_SEED = 42
+random.seed(RANDOM_SEED)
+np.random.seed(RANDOM_SEED)
+os.environ['PYTHONHASHSEED'] = str(RANDOM_SEED)
+
+# TensorFlow (if used)
+tf.random.set_seed(RANDOM_SEED)
+```
+
+This ensures consistent results across test runs.
 
 ---
 

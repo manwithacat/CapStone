@@ -2,21 +2,25 @@
 
 PY ?= python
 
-.PHONY: help install lint format typecheck check-pylance pre-commit etl features pipeline app clean
+.PHONY: help install lint format typecheck check-pylance test test-fast test-all test-notebooks pre-commit etl features pipeline app clean
 
 help:
 	@echo "Usage:"
-	@echo "  make install      - install dev tools and project deps"
-	@echo "  make lint         - run Ruff lint only"
-	@echo "  make format       - run Black format only"
-	@echo "  make typecheck    - run Pyright type checker (investigate Pylance errors)"
-	@echo "  make check-pylance - diagnose Pylance/import configuration issues"
-	@echo "  make pre-commit   - run lint and format (recommended before commit)"
-	@echo "  make etl          - run ETL pipeline (raw → cleaned.parquet)"
-	@echo "  make features     - run feature engineering (cleaned → features.parquet)"
-	@echo "  make pipeline     - run full pipeline (ETL + features)"
-	@echo "  make app          - run the Streamlit dashboard locally"
-	@echo "  make clean        - remove caches and temp files"
+	@echo "  make install       - install dev tools and project deps"
+	@echo "  make lint          - run Ruff lint only"
+	@echo "  make format        - run Black format only"
+	@echo "  make typecheck     - run Pyright type checker (investigate Pylance errors)"
+	@echo "  make check-pylance  - diagnose Pylance/import configuration issues"
+	@echo "  make test          - run notebook tests (excluding slow)"
+	@echo "  make test-fast     - run only fast notebooks"
+	@echo "  make test-all      - run ALL notebooks (including slow/data downloads)"
+	@echo "  make test-notebooks - prepare notebooks for testing"
+	@echo "  make pre-commit    - run lint and format (recommended before commit)"
+	@echo "  make etl           - run ETL pipeline (raw → cleaned.parquet)"
+	@echo "  make features      - run feature engineering (cleaned → features.parquet)"
+	@echo "  make pipeline      - run full pipeline (ETL + features)"
+	@echo "  make app           - run the Streamlit dashboard locally"
+	@echo "  make clean         - remove caches and temp files"
 
 install:
 	@echo "Installing project dependencies..."
@@ -62,6 +66,36 @@ check-pylance:
 	@echo "Running Pylance diagnostic script..."
 	@echo ""
 	$(PY) scripts/check_pylance.py
+
+test-notebooks:
+	@echo "Preparing notebooks for testing..."
+	@echo ""
+	$(PY) scripts/prepare_notebooks_for_testing.py
+	@echo ""
+	@echo "✓ Notebooks prepared"
+
+test:
+	@echo "Running notebook tests (excluding slow)..."
+	@echo ""
+	pytest -m "not slow and not data_download" --nbmake-timeout=300
+	@echo ""
+	@echo "✅ Notebook tests passed"
+
+test-fast:
+	@echo "Running fast notebook tests only..."
+	@echo ""
+	pytest jupyter_notebooks/02_exploratory_data_analysis.ipynb jupyter_notebooks/04_hypothesis_testing.ipynb
+	@echo ""
+	@echo "✅ Fast tests passed"
+
+test-all:
+	@echo "Running ALL notebook tests (including slow)..."
+	@echo ""
+	@echo "⚠️  This may take a long time and download large datasets!"
+	@echo ""
+	pytest
+	@echo ""
+	@echo "✅ All notebook tests passed"
 
 pre-commit: lint format
 	@echo "✅ Pre-commit checks complete"

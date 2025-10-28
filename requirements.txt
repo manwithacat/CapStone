@@ -62,6 +62,14 @@ nbdime>=4.0.0                # Notebook diff and merge tools
 tqdm>=4.65.0                 # Progress bars (works in VS Code notebooks)
 
 # ============================================================================
+# Notebook Testing
+# ============================================================================
+pytest>=7.4.0                # Testing framework
+nbmake>=1.5.0                # Execute and test Jupyter notebooks
+pytest-xdist>=3.5.0          # Parallel test execution
+pytest-timeout>=2.2.0        # Timeout support for long-running tests
+
+# ============================================================================
 # Optional Dependencies Detected in Environment (not explicitly required)
 # ============================================================================
 # fqdn==1.5.1
