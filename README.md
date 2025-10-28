@@ -527,9 +527,11 @@ CapStone/
 ## Installation and Setup
 
 ### Prerequisites
-- Python 3.12.8 or compatible version
-- Git installed on your machine
-- VS Code (recommended) or other IDE
+- **Python 3.9+** (3.12.8 recommended)
+- **Git** installed on your machine
+- **Make** utility (see installation instructions below)
+- **VS Code** (recommended) or other IDE
+- **10+ GB disk space** for dataset
 
 ### Step 1: Clone the Repository
 ```bash
@@ -537,20 +539,55 @@ git clone <your-repository-url>
 cd CapStone
 ```
 
-### Step 2: Create Virtual Environment
-In VS Code:
+### Step 2: Install Make (if not already installed)
+
+**macOS**:
+```bash
+# Install Xcode Command Line Tools (includes make)
+xcode-select --install
+
+# Or via Homebrew
+brew install make
+```
+
+**Linux (Ubuntu/Debian)**:
+```bash
+sudo apt-get update
+sudo apt-get install build-essential
+```
+
+**Windows**:
+```powershell
+# Option 1: Install via Chocolatey (recommended)
+choco install make
+
+# Option 2: Install via winget
+winget install GnuWin32.Make
+
+# Option 3: Use WSL (Windows Subsystem for Linux)
+# Then follow Linux instructions above
+```
+
+**Verify make installation**:
+```bash
+make --version
+# Should show: GNU Make 4.x or similar
+```
+
+### Step 3: Create Virtual Environment
+**In VS Code**:
 1. Open Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
 2. Type "Python: Create Environment"
 3. Select "Venv"
-4. Choose Python 3.12.8
+4. Choose Python 3.12.8 (or 3.9+)
 5. Do NOT select requirements.txt yet
 
-Or via terminal:
+**Or via terminal**:
 ```bash
 python -m venv .venv
 ```
 
-### Step 3: Activate Virtual Environment
+### Step 4: Activate Virtual Environment
 **Windows**:
 ```bash
 .venv\Scripts\activate
@@ -561,27 +598,168 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-### Step 4: Install Dependencies
+### Step 5: Install Dependencies and Project Package
 ```bash
+# Install all dependencies
+make install
+
+# OR manually:
+pip install --upgrade pip
 pip install -r requirements.txt
+pip install -e .  # Install project in editable mode
 ```
 
-### Step 5: Verify Installation
+**Why `pip install -e .`?**
+- Installs the `src/` directory as a Python package
+- Enables clean imports: `from preprocessing import ...`
+- No need for `sys.path` manipulation in notebooks
+- Required for VS Code Pylance to recognize custom modules
+
+### Step 6: Configure Environment Variables
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# On Windows:
+copy .env.example .env
+```
+
+**What's in .env?**
+```bash
+# Adds src/ to Python path for VS Code Pylance
+PYTHONPATH=${PYTHONPATH}:${workspaceFolder}/src
+```
+
+### Step 7: Verify Installation
+**Quick verification**:
 ```bash
 python --version
 jupyter --version
 streamlit --version
+make --version
 ```
 
-### Step 6: Run Jupyter Notebooks
+**Comprehensive diagnostic**:
+```bash
+make check-pylance
+```
+
+This will verify:
+- ✓ Python version and executable
+- ✓ Source directory exists
+- ✓ Python path includes src/
+- ✓ Preprocessing module imports successfully
+- ✓ Package is installed
+- ✓ All configuration files exist
+
+**Expected output**:
+```
+✅ SUCCESS: preprocessing module imported successfully!
+✅ Package 'chest-xray-detection' is installed
+✓ All configuration files exist
+```
+
+### Step 8: Run Development Tools
+
+**View available commands**:
+```bash
+make help
+```
+
+**Output**:
+```
+Usage:
+  make install       - install dev tools and project deps
+  make lint          - run Ruff lint only
+  make format        - run Black format only
+  make typecheck     - run Pyright type checker
+  make check-pylance - diagnose Pylance/import issues
+  make pre-commit    - run lint and format
+  make app           - run Streamlit dashboard
+  make clean         - remove caches and temp files
+```
+
+**Run pre-commit checks** (before committing code):
+```bash
+make pre-commit
+```
+
+**Check for type errors**:
+```bash
+make typecheck
+```
+
+### Step 9: Run Jupyter Notebooks
 ```bash
 jupyter notebook
+
+# Or use VS Code's built-in notebook support (recommended)
+# File → Open File → jupyter_notebooks/01_data_collection_and_setup.ipynb
 ```
 
-### Step 7: Run Streamlit Dashboard
+### Step 10: Run Streamlit Dashboard
 ```bash
+make app
+
+# OR manually:
 streamlit run app/streamlit_app.py
 ```
+
+### Troubleshooting
+
+**Issue**: VS Code shows "Cannot find module 'preprocessing'" in notebooks
+
+**Solution**:
+```bash
+# 1. Ensure package is installed in editable mode
+pip install -e .
+
+# 2. Reload VS Code window
+# Press Cmd+Shift+P → "Developer: Reload Window"
+
+# 3. Run diagnostic
+make check-pylance
+
+# 4. See full guide
+cat docs/PYLANCE_SETUP.md
+```
+
+**Issue**: `make: command not found`
+
+**Solution**: Follow Step 2 to install make for your operating system
+
+**Issue**: Import errors when running notebooks
+
+**Solution**:
+```bash
+# Ensure you're in the correct directory
+pwd  # Should show: .../CapStone
+
+# Activate virtual environment
+source .venv/bin/activate  # Mac/Linux
+.venv\Scripts\activate     # Windows
+
+# Reinstall package
+pip install -e .
+```
+
+**Issue**: Jupyter kernel not found
+
+**Solution**:
+```bash
+# Install ipykernel
+pip install ipykernel
+
+# Add environment to Jupyter
+python -m ipykernel install --user --name=capstone --display-name="Python (Capstone)"
+
+# In Jupyter/VS Code: Select kernel → Python (Capstone)
+```
+
+For more detailed troubleshooting, see:
+- **Import issues**: `docs/PYLANCE_SETUP.md`
+- **Data download issues**: Check Notebook 01
+- **Environment setup**: `docs/`
 
 ---
 

@@ -19,8 +19,27 @@ help:
 	@echo "  make clean        - remove caches and temp files"
 
 install:
+	@echo "Installing project dependencies..."
 	$(PY) -m pip install --upgrade pip
 	$(PY) -m pip install -r requirements.txt
+	@echo ""
+	@echo "Installing project package in editable mode..."
+	$(PY) -m pip install -e .
+	@echo ""
+	@echo "Setting up environment configuration..."
+	@if [ ! -f .env ]; then \
+		cp .env.example .env && \
+		echo "✓ Created .env file from .env.example"; \
+	else \
+		echo "✓ .env file already exists"; \
+	fi
+	@echo ""
+	@echo "✅ Installation complete!"
+	@echo ""
+	@echo "Next steps:"
+	@echo "  1. Reload VS Code window (Cmd+Shift+P → 'Reload Window')"
+	@echo "  2. Run: make check-pylance (to verify setup)"
+	@echo "  3. Start working: jupyter notebook or make app"
 
 lint:
 	ruff check .
