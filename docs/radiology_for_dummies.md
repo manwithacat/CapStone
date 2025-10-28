@@ -12,6 +12,33 @@ This guide explains the 14 chest conditions detected in our AI model in simple, 
 
 ---
 
+## Common Medical Terms & Abbreviations
+
+Before we dive in, here are the medical terms and abbreviations you'll see throughout this guide:
+
+### Imaging Terms
+- **CXR**: Chest X-Ray (the standard chest image we're analyzing)
+- **CT Scan**: Computed Tomography - a more detailed 3D scan using X-rays taken from many angles
+- **MRI**: Magnetic Resonance Imaging - detailed images using magnets (not X-rays)
+- **PET Scan**: Positron Emission Tomography - shows metabolic activity in tissues
+
+### Medical Abbreviations
+- **COPD**: Chronic Obstructive Pulmonary Disease (lung disease, usually from smoking)
+- **MI**: Myocardial Infarction (heart attack)
+- **PE**: Pulmonary Embolism (blood clot in the lung)
+- **NLP**: Natural Language Processing (computer analysis of text/reports)
+
+### Common Medical Terms
+- **Acute**: Sudden onset, recent (opposite of chronic)
+- **Chronic**: Long-lasting, ongoing (opposite of acute)
+- **Bilateral**: Affecting both sides (both lungs)
+- **Unilateral**: Affecting one side (one lung)
+- **Benign**: Not cancerous, not dangerous
+- **Malignant**: Cancerous, potentially dangerous
+- **Idiopathic**: Unknown cause ("we don't know why it happened")
+
+---
+
 ## Table of Contents
 
 1. [Atelectasis](#atelectasis)
@@ -51,13 +78,13 @@ Atelectasis (pronounced "at-uh-LEK-tuh-sis") is when part of your lung collapses
 - Coughing
 - Low oxygen levels
 
-### On a Chest X-Ray
+### On a Chest X-Ray (CXR)
 
-Appears as a white or hazy area where the collapsed lung tissue is denser than normal air-filled lung.
+Appears as a white or hazy area where the collapsed lung tissue is denser than normal air-filled lung. A chest X-ray is a standard image that shows your lungs, heart, and chest bones using a small amount of radiation.
 
 ### Treatment
 
-Usually resolves with deep breathing exercises, coughing, moving around, and sometimes chest physiotherapy. Severe cases may need bronchoscopy to remove blockages.
+Usually resolves with deep breathing exercises, coughing, moving around, and sometimes chest physiotherapy. Severe cases may need **bronchoscopy** (a thin tube with a camera inserted through the mouth to clear blocked airways).
 
 ---
 
@@ -194,7 +221,7 @@ Appears as a white area at the bottom of the chest (fluid settles due to gravity
 
 ### Treatment
 
-Drain the fluid with a needle (thoracocentesis), treat the underlying cause, sometimes place a chest tube for continuous drainage.
+Drain the fluid with a needle (**thoracocentesis** - a procedure to remove fluid from the chest), treat the underlying cause, sometimes place a chest tube for continuous drainage.
 
 **Sources**: North Tees and Hartlepool NHS Foundation Trust, "Pleural Effusion"; Hull University Teaching Hospitals NHS Trust, "Pleural Effusion"
 
@@ -271,7 +298,7 @@ Shows a "reticular" (net-like) pattern, increased white markings, and a "honeyco
 ### Treatment
 
 No cure exists, but treatments can slow progression:
-- Antifibrotic medications (pirfenidone, nintedanib)
+- **Antifibrotic medications** (drugs that slow down scarring - pirfenidone, nintedanib)
 - Oxygen therapy
 - Pulmonary rehabilitation
 - Lung transplant in severe cases
@@ -309,7 +336,7 @@ Appears as a rounded mass behind the heart containing air or fluid (the stomach 
 
 - Lifestyle modifications: Smaller meals, avoiding lying down after eating, weight loss
 - Medications: Antacids, proton pump inhibitors
-- Surgery: For large hernias or severe symptoms (fundoplication)
+- Surgery: For large hernias or severe symptoms (**fundoplication** - surgery to strengthen the valve between stomach and esophagus)
 
 ---
 
@@ -357,9 +384,9 @@ A lung mass is a spot on the chest X-ray that is **larger than 3 cm** (about the
 
 - **Lung cancer**: Primary lung tumor
 - **Metastatic cancer**: Spread from cancer elsewhere in the body
-- **Infections**: Tuberculosis, fungal infections (can form masses called granulomas)
+- **Infections**: Tuberculosis, fungal infections (can form masses called **granulomas** - clusters of immune cells fighting infection)
 - **Abscesses**: Pockets of pus from infection
-- **Benign tumors**: Hamartomas, fibromas
+- **Benign tumors**: **Hamartomas** (benign growths of normal tissue), **fibromas** (benign fibrous tissue growths)
 
 ### Symptoms
 
@@ -394,7 +421,7 @@ A lung nodule is a small, round spot on a chest X-ray that is **less than 3 cm**
 ### What Causes It?
 
 - **Infections**: Old tuberculosis, fungal infections, bacterial pneumonia (leave healed nodules)
-- **Benign tumors**: Hamartomas (most common benign nodule)
+- **Benign tumors**: **Hamartomas** (most common benign nodule - abnormal but harmless mix of normal tissue)
 - **Cancer**: Early lung cancer, metastases from other cancers
 - **Inflammatory conditions**: Rheumatoid arthritis, sarcoidosis
 - **Congenital**: Present from birth
@@ -541,7 +568,7 @@ Shows a dark area (air) outside the lung with a visible lung edge. The collapsed
 
 - **Small pneumothorax**: May heal on its own with observation
 - **Larger pneumothorax**: Requires needle aspiration or chest tube to remove air
-- **Recurrent cases**: May need surgery (pleurodesis) to prevent future collapses
+- **Recurrent cases**: May need surgery (**pleurodesis** - a procedure to seal the space between lung and chest wall) to prevent future collapses
 - **Emergency**: Large pneumothorax causing severe symptoms needs immediate treatment
 
 **Sources**: North Tees and Hartlepool NHS Foundation Trust, "Pneumothorax"; University Hospitals Plymouth NHS Trust, "Pneumothorax (Collapsed Lung)"; Asthma + Lung UK, "Pneumothorax (collapsed lung)"
