@@ -168,7 +168,7 @@ st.sidebar.markdown("### 📚 Resources")
 st.sidebar.markdown("""
 - [Dataset on Kaggle](https://www.kaggle.com/datasets/nih-chest-xrays/data)
 - [Original Paper (CVPR 2017)](https://arxiv.org/abs/1705.02315)
-- [GitHub Repository](#)
+- [GitHub Repository](https://github.com/manwithacat/CapStone)
 """)
 
 # ============================================================================
