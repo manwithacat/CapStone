@@ -8,7 +8,6 @@ Grad-CAM visualizations.
 
 import streamlit as st
 import pandas as pd
-from pathlib import Path
 
 
 def render_disease_detector_tab(df, disease_colors=None):
@@ -63,7 +62,7 @@ def render_disease_detector_tab(df, disease_colors=None):
         "XGBoost Baseline"
     ]
 
-    selected_model = st.selectbox(
+    _selected_model = st.selectbox(
         "Choose a model for prediction:",
         model_options,
         disabled=True  # Disabled until models are trained
@@ -88,7 +87,7 @@ def render_disease_detector_tab(df, disease_colors=None):
     - Grayscale or RGB accepted (will be converted to grayscale)
     """)
 
-    uploaded_file = st.file_uploader(
+    _uploaded_file = st.file_uploader(
         "Choose a chest X-ray image file...",
         type=['png', 'jpg', 'jpeg', 'dcm'],
         disabled=True  # Disabled until models are trained
@@ -100,7 +99,7 @@ def render_disease_detector_tab(df, disease_colors=None):
     use_sample = st.checkbox("Use sample image from dataset", disabled=True)
 
     if use_sample:
-        sample_idx = st.slider(
+        _sample_idx = st.slider(
             "Select sample image index:",
             0, min(100, len(df)-1),
             0,

@@ -6,7 +6,6 @@ clinical recommendations, ethical considerations, and future directions.
 """
 
 import streamlit as st
-import pandas as pd
 
 
 def render_clinical_insights_tab(df, disease_colors=None):

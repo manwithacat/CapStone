@@ -11,12 +11,7 @@ hypothesis testing results, and model performance metrics.
 import pathlib
 
 import pandas as pd
-import numpy as np
 import streamlit as st
-import plotly.express as px
-import plotly.graph_objects as go
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 # Tab modules: Modular rendering functions for each dashboard tab
 from src.tabs import (

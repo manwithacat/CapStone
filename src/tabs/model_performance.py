@@ -7,7 +7,6 @@ ROC curves, confusion matrices, and model comparisons.
 
 import streamlit as st
 import pandas as pd
-from pathlib import Path
 
 
 def render_model_performance_tab(df, disease_colors=None):
