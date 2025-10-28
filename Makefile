@@ -1,24 +1,20 @@
-# Simple project workflow — run `make help` to see targets.
+# NIH Chest X-Ray Disease Detection - Project Makefile
+# Run `make help` to see available targets
 
 PY ?= python
 
-.PHONY: help install lint format typecheck check-pylance test test-fast test-all test-notebooks pre-commit etl features pipeline app clean
+.PHONY: help install lint format typecheck test test-fast test-notebooks pre-commit app clean
 
 help:
 	@echo "Usage:"
-	@echo "  make install       - install dev tools and project deps"
-	@echo "  make lint          - run Ruff lint only"
-	@echo "  make format        - run Black format only"
-	@echo "  make typecheck     - run Pyright type checker (investigate Pylance errors)"
-	@echo "  make check-pylance  - diagnose Pylance/import configuration issues"
+	@echo "  make install       - install dev dependencies and project package"
+	@echo "  make lint          - run Ruff linter"
+	@echo "  make format        - run Black formatter"
+	@echo "  make typecheck     - run Pyright type checker"
 	@echo "  make test          - run notebook tests (excluding slow)"
-	@echo "  make test-fast     - run only fast notebooks"
-	@echo "  make test-all      - run ALL notebooks (including slow/data downloads)"
+	@echo "  make test-fast     - run only fast notebook tests"
 	@echo "  make test-notebooks - prepare notebooks for testing"
-	@echo "  make pre-commit    - run lint and format (recommended before commit)"
-	@echo "  make etl           - run ETL pipeline (raw → cleaned.parquet)"
-	@echo "  make features      - run feature engineering (cleaned → features.parquet)"
-	@echo "  make pipeline      - run full pipeline (ETL + features)"
+	@echo "  make pre-commit    - run lint and format checks"
 	@echo "  make app           - run the Streamlit dashboard locally"
 	@echo "  make clean         - remove caches and temp files"
 
@@ -42,8 +38,7 @@ install:
 	@echo ""
 	@echo "Next steps:"
 	@echo "  1. Reload VS Code window (Cmd+Shift+P → 'Reload Window')"
-	@echo "  2. Run: make check-pylance (to verify setup)"
-	@echo "  3. Start working: jupyter notebook or make app"
+	@echo "  2. Start working: jupyter notebook or make app"
 	@echo ""
 	@echo "💡 For production deployment, use: pip install -r requirements.txt"
 
@@ -63,11 +58,6 @@ typecheck:
 	@echo "   1. Reload VS Code window (Cmd+Shift+P → 'Reload Window')"
 	@echo "   2. Check .vscode/settings.json has src/ in extraPaths"
 	@echo "   3. Install package in editable mode: pip install -e ."
-
-check-pylance:
-	@echo "Running Pylance diagnostic script..."
-	@echo ""
-	$(PY) scripts/check_pylance.py
 
 test-notebooks:
 	@echo "Preparing notebooks for testing..."
@@ -90,26 +80,8 @@ test-fast:
 	@echo ""
 	@echo "✅ Fast tests passed"
 
-test-all:
-	@echo "Running ALL notebook tests (including slow)..."
-	@echo ""
-	@echo "⚠️  This may take a long time and download large datasets!"
-	@echo ""
-	pytest
-	@echo ""
-	@echo "✅ All notebook tests passed"
-
 pre-commit: lint format
 	@echo "✅ Pre-commit checks complete"
-
-etl:
-	$(PY) src/etl.py
-
-features:
-	$(PY) src/features.py
-
-pipeline: etl features
-	@echo "✅ Full data pipeline complete"
 
 app:
 	streamlit run app.py
@@ -118,3 +90,4 @@ clean:
 	@find . -name "__pycache__" -type d -prune -exec rm -rf {} +
 	@find . -name ".ruff_cache" -type d -prune -exec rm -rf {} +
 	@find . -name ".pytest_cache" -type d -prune -exec rm -rf {} +
+	@echo "✅ Cleaned up cache files"
