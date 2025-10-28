@@ -32,7 +32,7 @@ scipy>=1.11.0                # Scientific computing and statistics
 # ============================================================================
 # Deep Learning & Computer Vision
 # ============================================================================
-tensorflow>=2.15.0,<2.19.0   # Deep learning framework
+tensorflow>=2.15.0,<2.21.0   # Deep learning framework
 opencv-python>=4.8.0         # Computer vision library
 Pillow>=10.0.0               # Image processing
 scikit-image>=0.22.0         # Advanced image processing algorithms
