@@ -7,8 +7,7 @@ making them composable and reusable.
 
 import numpy as np
 from PIL import Image
-from pathlib import Path
-from typing import Union, Tuple, Optional
+from typing import Union, Tuple
 import albumentations as A
 
 

@@ -48,11 +48,11 @@ def main():
         print("✅ SUCCESS: preprocessing module imported successfully!")
         print()
         print("Available components:")
-        print(f"  - ChestXRayPreprocessingPipeline")
-        print(f"  - create_train_pipeline")
-        print(f"  - create_inference_pipeline")
+        print("  - ChestXRayPreprocessingPipeline")
+        print("  - create_train_pipeline")
+        print("  - create_inference_pipeline")
     except ImportError as e:
-        print(f"❌ FAILED: Could not import preprocessing module")
+        print("❌ FAILED: Could not import preprocessing module")
         print(f"   Error: {e}")
         print()
         print("TROUBLESHOOTING STEPS:")
@@ -74,7 +74,7 @@ def main():
     try:
         import pkg_resources
         pkg = pkg_resources.get_distribution('chest-xray-detection')
-        print(f"✅ Package 'chest-xray-detection' is installed")
+        print("✅ Package 'chest-xray-detection' is installed")
         print(f"   Version: {pkg.version}")
         print(f"   Location: {pkg.location}")
     except pkg_resources.DistributionNotFound:

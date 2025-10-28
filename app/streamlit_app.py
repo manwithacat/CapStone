@@ -6,7 +6,6 @@ This is the entry point for the interactive web dashboard.
 """
 
 import streamlit as st
-from pathlib import Path
 
 # Page configuration
 st.set_page_config(

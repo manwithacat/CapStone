@@ -129,7 +129,7 @@ def add_seed_cell(nb: dict) -> dict:
     else:
         # Insert at beginning if no import cell found
         nb['cells'].insert(0, SEED_CELL.copy())
-        print(f"  → Added seed cell at beginning")
+        print("  → Added seed cell at beginning")
 
     return nb
 
@@ -165,16 +165,16 @@ def main():
         has_seed = check_has_seed(nb)
 
         if config['needs_seed'] and not has_seed:
-            print(f"   Adding deterministic seed cell...")
+            print("   Adding deterministic seed cell...")
             nb = add_seed_cell(nb)
         elif has_seed:
-            print(f"   ✓ Already has random seed")
+            print("   ✓ Already has random seed")
 
         # Save notebook
         with open(notebook_path, 'w') as f:
             json.dump(nb, f, indent=1)
 
-        print(f"   ✓ Updated")
+        print("   ✓ Updated")
         print()
 
     print("=" * 70)
