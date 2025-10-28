@@ -219,7 +219,7 @@ st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #7f8c8d; padding: 1rem 0;'>
     <p><strong>Code Institute Data Analytics & AI Bootcamp - Capstone Project</strong></p>
-    <p>NIH Chest X-Ray Disease Detection | January 2025</p>
+    <p>NIH Chest X-Ray Disease Detection | November 2025</p>
     <p>🔬 For research and educational purposes only</p>
 </div>
 """, unsafe_allow_html=True)
