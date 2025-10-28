@@ -2,20 +2,21 @@
 
 PY ?= python
 
-.PHONY: help install lint format typecheck pre-commit etl features pipeline app clean
+.PHONY: help install lint format typecheck check-pylance pre-commit etl features pipeline app clean
 
 help:
 	@echo "Usage:"
-	@echo "  make install    - install dev tools and project deps"
-	@echo "  make lint       - run Ruff lint only"
-	@echo "  make format     - run Black format only"
-	@echo "  make typecheck  - run Pyright type checker (investigate Pylance errors)"
-	@echo "  make pre-commit - run lint and format (recommended before commit)"
-	@echo "  make etl        - run ETL pipeline (raw → cleaned.parquet)"
-	@echo "  make features   - run feature engineering (cleaned → features.parquet)"
-	@echo "  make pipeline   - run full pipeline (ETL + features)"
-	@echo "  make app        - run the Streamlit dashboard locally"
-	@echo "  make clean      - remove caches and temp files"
+	@echo "  make install      - install dev tools and project deps"
+	@echo "  make lint         - run Ruff lint only"
+	@echo "  make format       - run Black format only"
+	@echo "  make typecheck    - run Pyright type checker (investigate Pylance errors)"
+	@echo "  make check-pylance - diagnose Pylance/import configuration issues"
+	@echo "  make pre-commit   - run lint and format (recommended before commit)"
+	@echo "  make etl          - run ETL pipeline (raw → cleaned.parquet)"
+	@echo "  make features     - run feature engineering (cleaned → features.parquet)"
+	@echo "  make pipeline     - run full pipeline (ETL + features)"
+	@echo "  make app          - run the Streamlit dashboard locally"
+	@echo "  make clean        - remove caches and temp files"
 
 install:
 	$(PY) -m pip install --upgrade pip
@@ -37,6 +38,11 @@ typecheck:
 	@echo "   1. Reload VS Code window (Cmd+Shift+P → 'Reload Window')"
 	@echo "   2. Check .vscode/settings.json has src/ in extraPaths"
 	@echo "   3. Install package in editable mode: pip install -e ."
+
+check-pylance:
+	@echo "Running Pylance diagnostic script..."
+	@echo ""
+	$(PY) scripts/check_pylance.py
 
 pre-commit: lint format
 	@echo "✅ Pre-commit checks complete"
