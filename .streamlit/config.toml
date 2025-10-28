@@ -1,0 +1,34 @@
+# Streamlit Cloud Configuration
+# This file is used for deployment settings
+
+[server]
+# Headless mode (no browser window opens)
+headless = true
+
+# Disable CORS protection (required for Streamlit Cloud)
+enableCORS = false
+
+# Enable XSS protection
+enableXsrfProtection = true
+
+# File watcher type (use "poll" for cloud deployments)
+fileWatcherType = "poll"
+
+[browser]
+# Don't open browser automatically on local runs
+gatherUsageStats = false
+
+[theme]
+# Medical/Healthcare theme colors
+primaryColor = "#2c3e50"        # Dark blue-grey (professional)
+backgroundColor = "#ffffff"      # White background
+secondaryBackgroundColor = "#f0f2f6"  # Light grey
+textColor = "#262730"           # Dark text
+font = "sans serif"             # Clean, readable font
+
+[client]
+# Show error details in production
+showErrorDetails = true
+
+# Toolbar mode
+toolbarMode = "minimal"
