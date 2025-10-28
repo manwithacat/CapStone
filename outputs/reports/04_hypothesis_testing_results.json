@@ -1,0 +1,722 @@
+{
+  "hypothesis_1_age_chi_square": [
+    {
+      "Disease": "Atelectasis",
+      "Chi2": 582.1517031976543,
+      "p_value": 1.1294304360034312e-124,
+      "Cramers_V": 0.07206220249911555,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Cardiomegaly",
+      "Chi2": 17.72849037261137,
+      "p_value": 0.0013943477105444625,
+      "Cramers_V": 0.012575501791713201,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Consolidation",
+      "Chi2": 14.502174655054615,
+      "p_value": 0.005853342937807198,
+      "Cramers_V": 0.011373811100680323,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Edema",
+      "Chi2": 40.591331342532406,
+      "p_value": 3.265845327648417e-08,
+      "Cramers_V": 0.019028567423932174,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Effusion",
+      "Chi2": 363.33774474656724,
+      "p_value": 2.3114033722007982e-77,
+      "Cramers_V": 0.05693046139600549,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Emphysema",
+      "Chi2": 195.9498567340413,
+      "p_value": 2.7896803377303436e-41,
+      "Cramers_V": 0.04180824338739768,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Fibrosis",
+      "Chi2": 208.59751499743132,
+      "p_value": 5.32167558026197e-44,
+      "Cramers_V": 0.043136411223190806,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Hernia",
+      "Chi2": 585.5069212900333,
+      "p_value": 2.1221226240671201e-125,
+      "Cramers_V": 0.07226956857301285,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Infiltration",
+      "Chi2": 44.74762291068266,
+      "p_value": 4.486489774833081e-09,
+      "Cramers_V": 0.019979031439720622,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Mass",
+      "Chi2": 66.72114080321415,
+      "p_value": 1.1162172405864748e-13,
+      "Cramers_V": 0.024396143382051833,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Nodule",
+      "Chi2": 199.2195074712561,
+      "p_value": 5.5293450831467565e-42,
+      "Cramers_V": 0.042155609856439055,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Pleural_Thickening",
+      "Chi2": 151.1062928858832,
+      "p_value": 1.1793655969990635e-31,
+      "Cramers_V": 0.0367139169396038,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Pneumonia",
+      "Chi2": 35.53028342351874,
+      "p_value": 3.6145050249470665e-07,
+      "Cramers_V": 0.0178028192051315,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Pneumothorax",
+      "Chi2": 36.14948205030743,
+      "p_value": 2.6958663711379273e-07,
+      "Cramers_V": 0.017957277129866327,
+      "Significant": "\u2713 YES"
+    }
+  ],
+  "hypothesis_1_age_anova": [
+    {
+      "Disease": "Atelectasis",
+      "Mean_Age_With": 50.495458084609396,
+      "Mean_Age_Without": 46.48835035451119,
+      "Mean_Diff": 4.007107730098205,
+      "F_Stat": 590.0985176793488,
+      "p_value": 5.183802321030226e-130,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Cardiomegaly",
+      "Mean_Age_With": 47.268011527377524,
+      "Mean_Age_Without": 46.8921568627451,
+      "Mean_Diff": 0.37585466463242767,
+      "F_Stat": 1.348628678285777,
+      "p_value": 0.24552046862896534,
+      "Significant": "\u2717 NO"
+    },
+    {
+      "Disease": "Consolidation",
+      "Mean_Age_With": 46.654810370687805,
+      "Mean_Age_Without": 46.912175555824405,
+      "Mean_Diff": -0.25736518513659945,
+      "F_Stat": 1.0447030120545122,
+      "p_value": 0.3067323980958339,
+      "Significant": "\u2717 NO"
+    },
+    {
+      "Disease": "Edema",
+      "Mean_Age_With": 45.578810247503256,
+      "Mean_Age_Without": 46.92920039702414,
+      "Mean_Diff": -1.3503901495208837,
+      "F_Stat": 14.506781967530786,
+      "p_value": 0.0001397302412994028,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Effusion",
+      "Mean_Age_With": 49.77119471352407,
+      "Mean_Age_Without": 46.5146706071678,
+      "Mean_Diff": 3.2565241063562667,
+      "F_Stat": 440.5764044212818,
+      "p_value": 1.2512080566445833e-97,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Emphysema",
+      "Mean_Age_With": 50.32432432432432,
+      "Mean_Age_Without": 46.82288967555929,
+      "Mean_Diff": 3.5014346487650343,
+      "F_Stat": 106.43244161458614,
+      "p_value": 6.082346676206881e-25,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Fibrosis",
+      "Mean_Age_With": 52.70699881376038,
+      "Mean_Age_Without": 46.812829382255465,
+      "Mean_Diff": 5.894169431504913,
+      "F_Stat": 203.81081128702922,
+      "p_value": 3.379373592144157e-46,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Hernia",
+      "Mean_Age_With": 63.21145374449339,
+      "Mean_Age_Without": 46.86837425039994,
+      "Mean_Diff": 16.343079494093452,
+      "F_Stat": 213.77489370303863,
+      "p_value": 2.2852650207090165e-48,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Infiltration",
+      "Mean_Age_With": 46.20081431587413,
+      "Mean_Age_Without": 47.052599050159394,
+      "Mean_Diff": -0.8517847342852605,
+      "F_Stat": 41.88227390590802,
+      "p_value": 9.733525382577029e-11,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Mass",
+      "Mean_Age_With": 48.816326530612244,
+      "Mean_Age_Without": 46.797344317177306,
+      "Mean_Diff": 2.0189822134349384,
+      "F_Stat": 78.88053726562259,
+      "p_value": 6.692637480914487e-19,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Nodule",
+      "Mean_Age_With": 49.47622808403096,
+      "Mean_Age_Without": 46.74737449073155,
+      "Mean_Diff": 2.728853593299405,
+      "F_Stat": 157.077571209659,
+      "p_value": 5.204437200971415e-36,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Pleural_Thickening",
+      "Mean_Age_With": 50.52791728212703,
+      "Mean_Age_Without": 46.788568538189175,
+      "Mean_Diff": 3.739348743937853,
+      "F_Stat": 162.09897803836697,
+      "p_value": 4.176367601603039e-37,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Pneumonia",
+      "Mean_Age_With": 44.92732354996506,
+      "Mean_Age_Without": 46.926984614550676,
+      "Mean_Diff": -1.9996610645856165,
+      "F_Stat": 19.92355832215075,
+      "p_value": 8.067938687194557e-06,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Pneumothorax",
+      "Mean_Age_With": 46.48642021878536,
+      "Mean_Age_Without": 46.922063697129694,
+      "Mean_Diff": -0.4356434783443319,
+      "F_Stat": 3.3805903928197076,
+      "p_value": 0.06597106357138738,
+      "Significant": "\u2717 NO"
+    }
+  ],
+  "hypothesis_2_gender": [
+    {
+      "Disease": "Atelectasis",
+      "Male_Pct": 10.903062835491001,
+      "Female_Pct": 9.538745387453874,
+      "Pct_Diff": 1.3643174480371272,
+      "Chi2": 55.3258457299613,
+      "p_value_chi": 1.0211701617380647e-13,
+      "z_stat": 7.448039680856495,
+      "p_value_prop": 9.473733013263316e-14,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Cardiomegaly",
+      "Male_Pct": 2.0634670034733187,
+      "Female_Pct": 3.0114801148011483,
+      "Pct_Diff": -0.9480131113278296,
+      "Chi2": 102.17701919562644,
+      "p_value_chi": 5.0775537045036636e-24,
+      "z_stat": -10.12764818574058,
+      "p_value_prop": 4.1654748947231715e-24,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Consolidation",
+      "Male_Pct": 4.209030628354911,
+      "Female_Pct": 4.102091020910209,
+      "Pct_Diff": 0.10693960744470132,
+      "Chi2": 0.7634143562523119,
+      "p_value_chi": 0.38226211628783624,
+      "z_stat": 0.8888160422512666,
+      "p_value_prop": 0.3741019527862336,
+      "Significant": "\u2717 NO"
+    },
+    {
+      "Disease": "Edema",
+      "Male_Pct": 1.9008525418377011,
+      "Female_Pct": 2.252972529725297,
+      "Pct_Diff": -0.352119987887596,
+      "Chi2": 16.808678041673428,
+      "p_value_chi": 4.134380443933952e-05,
+      "z_stat": -4.1210738160624105,
+      "p_value_prop": 3.771105632717319e-05,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Effusion",
+      "Male_Pct": 11.738238080202084,
+      "Female_Pct": 12.058220582205822,
+      "Pct_Diff": -0.3199825020037377,
+      "Chi2": 2.665260635547821,
+      "p_value_chi": 0.10256102298143963,
+      "z_stat": -1.6418725283697475,
+      "p_value_prop": 0.10061642418448435,
+      "Significant": "\u2717 NO"
+    },
+    {
+      "Disease": "Emphysema",
+      "Male_Pct": 2.5418377012946003,
+      "Female_Pct": 1.857318573185732,
+      "Pct_Diff": 0.6845191281088683,
+      "Chi2": 58.55065035941641,
+      "p_value_chi": 1.9812416746126003e-14,
+      "z_stat": 7.672175702327699,
+      "p_value_prop": 1.69103091303907e-14,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Fibrosis",
+      "Male_Pct": 1.4445847805494159,
+      "Female_Pct": 1.5805658056580567,
+      "Pct_Diff": -0.13598102510864085,
+      "Chi2": 3.3491265368297887,
+      "p_value_chi": 0.06724068415812898,
+      "z_stat": -1.8548107157915783,
+      "p_value_prop": 0.06362326128033047,
+      "Significant": "\u2717 NO"
+    },
+    {
+      "Disease": "Hernia",
+      "Male_Pct": 0.15156299336911905,
+      "Female_Pct": 0.2685526855268553,
+      "Pct_Diff": -0.11698969215773625,
+      "Chi2": 18.092259476222026,
+      "p_value_chi": 2.1045524505932857e-05,
+      "z_stat": -4.3205066968498995,
+      "p_value_prop": 1.5567133154410883e-05,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Infiltration",
+      "Male_Pct": 18.04073255446795,
+      "Female_Pct": 17.357523575235753,
+      "Pct_Diff": 0.683208979232198,
+      "Chi2": 8.766471091227272,
+      "p_value_chi": 0.0030681850517306954,
+      "z_stat": 2.968706711514735,
+      "p_value_prop": 0.0029905588196749763,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Mass",
+      "Male_Pct": 5.5715187874960534,
+      "Female_Pct": 4.61869618696187,
+      "Pct_Diff": 0.9528226005341836,
+      "Chi2": 50.95712203652479,
+      "p_value_chi": 9.440584894312287e-13,
+      "z_stat": 7.152044933891828,
+      "p_value_prop": 8.549457125608685e-13,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Nodule",
+      "Male_Pct": 5.817808651720871,
+      "Female_Pct": 5.424354243542435,
+      "Pct_Diff": 0.39345440817843613,
+      "Chi2": 7.933488906293908,
+      "p_value_chi": 0.0048528136018399235,
+      "z_stat": 2.829694005469134,
+      "p_value_prop": 0.00465925421885083,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Pleural_Thickening",
+      "Male_Pct": 3.2238711714556363,
+      "Female_Pct": 2.7531775317753175,
+      "Pct_Diff": 0.47069363968031874,
+      "Chi2": 20.691735535730743,
+      "p_value_chi": 5.394834645701431e-06,
+      "z_stat": 4.566419289751765,
+      "p_value_prop": 4.961259328585487e-06,
+      "Significant": "\u2713 YES"
+    },
+    {
+      "Disease": "Pneumonia",
+      "Male_Pct": 1.323018629617935,
+      "Female_Pct": 1.2156621566215662,
+      "Pct_Diff": 0.10735647299636875,
+      "Chi2": 2.436183961372315,
+      "p_value_chi": 0.11856434541417683,
+      "z_stat": 1.5876605671575423,
+      "p_value_prop": 0.112363114368668,
+      "Significant": "\u2717 NO"
+    },
+    {
+      "Disease": "Pneumothorax",
+      "Male_Pct": 4.289548468582254,
+      "Female_Pct": 5.29930299302993,
+      "Pct_Diff": -1.0097545244476764,
+      "Chi2": 62.14243202829998,
+      "p_value_chi": 3.1949249723141512e-15,
+      "z_stat": -7.8972374627098985,
+      "p_value_prop": 2.8515279586186355e-15,
+      "Significant": "\u2713 YES"
+    }
+  ],
+  "hypothesis_3_correlations": {
+    "top_positive_correlations": [
+      {
+        "disease1": "Emphysema",
+        "disease2": "Pneumothorax",
+        "correlation": 0.17817518915291583
+      },
+      {
+        "disease1": "Edema",
+        "disease2": "Pneumonia",
+        "correlation": 0.17399625506128713
+      },
+      {
+        "disease1": "Atelectasis",
+        "disease2": "Effusion",
+        "correlation": 0.172444709568127
+      },
+      {
+        "disease1": "Cardiomegaly",
+        "disease2": "Effusion",
+        "correlation": 0.13009439520971924
+      },
+      {
+        "disease1": "Effusion",
+        "disease2": "Infiltration",
+        "correlation": 0.11813597511929605
+      },
+      {
+        "disease1": "Atelectasis",
+        "disease2": "Consolidation",
+        "correlation": 0.10894308522315913
+      },
+      {
+        "disease1": "Mass",
+        "disease2": "Nodule",
+        "correlation": 0.10125250404623914
+      },
+      {
+        "disease1": "Consolidation",
+        "disease2": "Effusion",
+        "correlation": 0.10113012897236483
+      },
+      {
+        "disease1": "Edema",
+        "disease2": "Infiltration",
+        "correlation": 0.09420815828137781
+      },
+      {
+        "disease1": "Atelectasis",
+        "disease2": "Infiltration",
+        "correlation": 0.09313051341867755
+      },
+      {
+        "disease1": "Consolidation",
+        "disease2": "Mass",
+        "correlation": 0.07457257675782926
+      },
+      {
+        "disease1": "Infiltration",
+        "disease2": "Pneumonia",
+        "correlation": 0.07302012740837258
+      },
+      {
+        "disease1": "Effusion",
+        "disease2": "Pleural_Thickening",
+        "correlation": 0.07200920638032787
+      },
+      {
+        "disease1": "Effusion",
+        "disease2": "Mass",
+        "correlation": 0.07071030905405032
+      },
+      {
+        "disease1": "Mass",
+        "disease2": "Pleural_Thickening",
+        "correlation": 0.06538817821811256
+      },
+      {
+        "disease1": "Edema",
+        "disease2": "Effusion",
+        "correlation": 0.0620915686039194
+      },
+      {
+        "disease1": "Fibrosis",
+        "disease2": "Pleural_Thickening",
+        "correlation": 0.05357842485352018
+      },
+      {
+        "disease1": "Nodule",
+        "disease2": "Pleural_Thickening",
+        "correlation": 0.04964918079000727
+      },
+      {
+        "disease1": "Effusion",
+        "disease2": "Pneumothorax",
+        "correlation": 0.047570664229998665
+      },
+      {
+        "disease1": "Consolidation",
+        "disease2": "Infiltration",
+        "correlation": 0.045926332043055816
+      }
+    ],
+    "correlation_matrix": {
+      "Atelectasis": {
+        "Atelectasis": 1.0,
+        "Cardiomegaly": 0.015819375919417157,
+        "Consolidation": 0.10894308522315913,
+        "Edema": -0.0033970287990167138,
+        "Effusion": 0.172444709568127,
+        "Emphysema": 0.0325990089427635,
+        "Fibrosis": 0.011130142617946896,
+        "Hernia": 0.010830172109736436,
+        "Infiltration": 0.09313051341867755,
+        "Mass": 0.01895279248414555,
+        "Nodule": -0.007966661339744944,
+        "Pleural_Thickening": 0.025201808196114044,
+        "Pneumonia": 0.029911097888100202,
+        "Pneumothorax": 0.031422379253989184
+      },
+      "Cardiomegaly": {
+        "Atelectasis": 0.015819375919417157,
+        "Cardiomegaly": 1.0,
+        "Consolidation": 0.015359825611884224,
+        "Edema": 0.028318192983918945,
+        "Effusion": 0.13009439520971924,
+        "Emphysema": -0.007089550938163054,
+        "Fibrosis": 0.004836978852539335,
+        "Hernia": 0.0017617124655475928,
+        "Infiltration": 0.014188860772060195,
+        "Mass": -0.010681759898124752,
+        "Nodule": -0.01212265489498456,
+        "Pleural_Thickening": 0.009120602356651096,
+        "Pneumonia": 0.002847922379111291,
+        "Pneumothorax": -0.022248063974641737
+      },
+      "Consolidation": {
+        "Atelectasis": 0.10894308522315913,
+        "Cardiomegaly": 0.015359825611884224,
+        "Consolidation": 1.0,
+        "Edema": 0.020821934709700323,
+        "Effusion": 0.10113012897236483,
+        "Emphysema": -0.0005211754736571621,
+        "Fibrosis": 0.0032363234661130233,
+        "Hernia": -0.005413126551143345,
+        "Infiltration": 0.045926332043055816,
+        "Mass": 0.07457257675782926,
+        "Nodule": 0.03181925898527324,
+        "Pleural_Thickening": 0.02873261531263583,
+        "Pneumonia": 0.0252353194733527,
+        "Pneumothorax": 0.00048472772793200353
+      },
+      "Edema": {
+        "Atelectasis": -0.0033970287990167138,
+        "Cardiomegaly": 0.028318192983918945,
+        "Consolidation": 0.020821934709700323,
+        "Edema": 1.0,
+        "Effusion": 0.0620915686039194,
+        "Emphysema": -0.009204276572969173,
+        "Fibrosis": -0.01324314921629068,
+        "Hernia": -0.002325940972233057,
+        "Infiltration": 0.09420815828137781,
+        "Mass": 0.0029100504468893883,
+        "Nodule": 0.0002610208973918254,
+        "Pleural_Thickening": -0.002032021995691734,
+        "Pneumonia": 0.17399625506128713,
+        "Pneumothorax": -0.02248710687340753
+      },
+      "Effusion": {
+        "Atelectasis": 0.172444709568127,
+        "Cardiomegaly": 0.13009439520971924,
+        "Consolidation": 0.10113012897236483,
+        "Edema": 0.0620915686039194,
+        "Effusion": 1.0,
+        "Emphysema": 0.011198448979556613,
+        "Fibrosis": -0.002775794452832153,
+        "Hernia": -0.0036564456940230148,
+        "Infiltration": 0.11813597511929605,
+        "Mass": 0.07071030905405032,
+        "Nodule": 0.019114493539230535,
+        "Pleural_Thickening": 0.07200920638032787,
+        "Pneumonia": 0.024322351850949834,
+        "Pneumothorax": 0.047570664229998665
+      },
+      "Emphysema": {
+        "Atelectasis": 0.0325990089427635,
+        "Cardiomegaly": -0.007089550938163054,
+        "Consolidation": -0.0005211754736571621,
+        "Edema": -0.009204276572969173,
+        "Effusion": 0.011198448979556613,
+        "Emphysema": 1.0,
+        "Fibrosis": -0.0009075962181124524,
+        "Hernia": -0.0014655199213281119,
+        "Infiltration": 0.0004056990078414258,
+        "Mass": 0.023212841397248232,
+        "Nodule": -0.0070620890566029425,
+        "Pleural_Thickening": 0.02640840051678673,
+        "Pneumonia": -0.0048882748731919005,
+        "Pneumothorax": 0.17817518915291583
+      },
+      "Fibrosis": {
+        "Atelectasis": 0.011130142617946896,
+        "Cardiomegaly": 0.004836978852539335,
+        "Consolidation": 0.0032363234661130233,
+        "Edema": -0.01324314921629068,
+        "Effusion": -0.002775794452832153,
+        "Emphysema": -0.0009075962181124524,
+        "Fibrosis": 1.0,
+        "Hernia": 0.007477726760641781,
+        "Infiltration": 0.008794375198885462,
+        "Mass": 0.009958944879783814,
+        "Nodule": 0.022478457569305308,
+        "Pleural_Thickening": 0.05357842485352018,
+        "Pneumonia": -0.006867347166727572,
+        "Pneumothorax": 9.370249138514902e-05
+      },
+      "Hernia": {
+        "Atelectasis": 0.010830172109736436,
+        "Cardiomegaly": 0.0017617124655475928,
+        "Consolidation": -0.005413126551143345,
+        "Edema": -0.002325940972233057,
+        "Effusion": -0.0036564456940230148,
+        "Emphysema": -0.0014655199213281119,
+        "Fibrosis": 0.007477726760641781,
+        "Hernia": 1.0,
+        "Infiltration": -0.003779865258936968,
+        "Mass": 0.011926972719465835,
+        "Nodule": -0.002422309819225018,
+        "Pleural_Thickening": 0.0013296714705851034,
+        "Pneumonia": 0.00018166828880643735,
+        "Pneumothorax": -0.001621455658261348
+      },
+      "Infiltration": {
+        "Atelectasis": 0.09313051341867755,
+        "Cardiomegaly": 0.014188860772060195,
+        "Consolidation": 0.045926332043055816,
+        "Edema": 0.09420815828137781,
+        "Effusion": 0.11813597511929605,
+        "Emphysema": 0.0004056990078414258,
+        "Fibrosis": 0.008794375198885462,
+        "Hernia": -0.003779865258936968,
+        "Infiltration": 1.0,
+        "Mass": 0.014047433253855796,
+        "Nodule": 0.0427493757752064,
+        "Pleural_Thickening": 0.020381314790153867,
+        "Pneumonia": 0.07302012740837258,
+        "Pneumothorax": 0.0005763704401517679
+      },
+      "Mass": {
+        "Atelectasis": 0.01895279248414555,
+        "Cardiomegaly": -0.010681759898124752,
+        "Consolidation": 0.07457257675782926,
+        "Edema": 0.0029100504468893883,
+        "Effusion": 0.07071030905405032,
+        "Emphysema": 0.023212841397248232,
+        "Fibrosis": 0.009958944879783814,
+        "Hernia": 0.011926972719465835,
+        "Infiltration": 0.014047433253855796,
+        "Mass": 1.0,
+        "Nodule": 0.10125250404623914,
+        "Pleural_Thickening": 0.06538817821811256,
+        "Pneumonia": -0.0010046451325907496,
+        "Pneumothorax": 0.029939952441063185
+      },
+      "Nodule": {
+        "Atelectasis": -0.007966661339744944,
+        "Cardiomegaly": -0.01212265489498456,
+        "Consolidation": 0.03181925898527324,
+        "Edema": 0.0002610208973918254,
+        "Effusion": 0.019114493539230535,
+        "Emphysema": -0.0070620890566029425,
+        "Fibrosis": 0.022478457569305308,
+        "Hernia": -0.002422309819225018,
+        "Infiltration": 0.0427493757752064,
+        "Mass": 0.10125250404623914,
+        "Nodule": 1.0,
+        "Pleural_Thickening": 0.04964918079000727,
+        "Pneumonia": -0.003718855233264432,
+        "Pneumothorax": 0.0075760412340000445
+      },
+      "Pleural_Thickening": {
+        "Atelectasis": 0.025201808196114044,
+        "Cardiomegaly": 0.009120602356651096,
+        "Consolidation": 0.02873261531263583,
+        "Edema": -0.002032021995691734,
+        "Effusion": 0.07200920638032787,
+        "Emphysema": 0.02640840051678673,
+        "Fibrosis": 0.05357842485352018,
+        "Hernia": 0.0013296714705851034,
+        "Infiltration": 0.020381314790153867,
+        "Mass": 0.06538817821811256,
+        "Nodule": 0.04964918079000727,
+        "Pleural_Thickening": 1.0,
+        "Pneumonia": 0.002227434392928861,
+        "Pneumothorax": 0.03166097722731816
+      },
+      "Pneumonia": {
+        "Atelectasis": 0.029911097888100202,
+        "Cardiomegaly": 0.002847922379111291,
+        "Consolidation": 0.0252353194733527,
+        "Edema": 0.17399625506128713,
+        "Effusion": 0.024322351850949834,
+        "Emphysema": -0.0048882748731919005,
+        "Fibrosis": -0.006867347166727572,
+        "Hernia": 0.00018166828880643735,
+        "Infiltration": 0.07302012740837258,
+        "Mass": -0.0010046451325907496,
+        "Nodule": -0.003718855233264432,
+        "Pleural_Thickening": 0.002227434392928861,
+        "Pneumonia": 1.0,
+        "Pneumothorax": -0.009983715702987192
+      },
+      "Pneumothorax": {
+        "Atelectasis": 0.031422379253989184,
+        "Cardiomegaly": -0.022248063974641737,
+        "Consolidation": 0.00048472772793200353,
+        "Edema": -0.02248710687340753,
+        "Effusion": 0.047570664229998665,
+        "Emphysema": 0.17817518915291583,
+        "Fibrosis": 9.370249138514902e-05,
+        "Hernia": -0.001621455658261348,
+        "Infiltration": 0.0005763704401517679,
+        "Mass": 0.029939952441063185,
+        "Nodule": 0.0075760412340000445,
+        "Pleural_Thickening": 0.03166097722731816,
+        "Pneumonia": -0.009983715702987192,
+        "Pneumothorax": 1.0
+      }
+    }
+  },
+  "multi_label_stats": {
+    "mean_diseases_per_image": 0.7240099892971816,
+    "max_diseases_per_image": 9,
+    "images_with_multiple_diseases": 20796,
+    "pct_with_multiple_diseases": 18.547984302533
+  }
+}
