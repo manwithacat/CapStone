@@ -129,11 +129,22 @@ def render_data_exploration_tab(df, eda_report, disease_colors=None):
 
     st.markdown("""
     Sample X-ray images from the dataset showing various pathological conditions.
+    **Hover over images to see disease labels and patient information.**
     """)
 
-    sample_xrays_path = figures_dir / "02_sample_xrays.png"
-    if sample_xrays_path.exists():
-        st.image(str(sample_xrays_path), caption="Sample X-Ray Images with Labels", use_container_width=True)
+    # Load interactive Plotly HTML version for hover tooltips
+    sample_xrays_interactive = figures_dir / "02_sample_xrays_interactive.html"
+    sample_xrays_static = figures_dir / "02_sample_xrays.png"
+
+    if sample_xrays_interactive.exists():
+        # Display interactive Plotly figure with hover tooltips
+        with open(sample_xrays_interactive, 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        st.components.v1.html(html_content, height=1200, scrolling=True)
+    elif sample_xrays_static.exists():
+        # Fallback to static PNG if HTML not available
+        st.image(str(sample_xrays_static), caption="Sample X-Ray Images with Labels", use_container_width=True)
+        st.info("💡 Interactive version with hover tooltips available in Notebook 02")
     else:
         st.info("Sample X-ray images will appear here after running Notebook 02")
 
