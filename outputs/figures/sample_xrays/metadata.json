@@ -1,0 +1,139 @@
+[
+  {
+    "disease": "No Finding",
+    "image_index": "normal-chest-x-ray.jpg",
+    "patient_id": "N/A",
+    "patient_age": 50,
+    "patient_gender": "M",
+    "finding_labels": "No Finding",
+    "view_position": "PA",
+    "radiologist_note": "There is a degree of hyperinflation as evidenced by both increased retrosternal airspace and somewhat flattened and depressed diaphragms.",
+    "attribution": "Case courtesy of Frank Gaillard, <a href=\"https://radiopaedia.org/?lang=gb\">Radiopaedia.org</a>. From the case <a href=\"https://radiopaedia.org/cases/8304?lang=gb\">rID: 8304</a>"
+  },
+  {
+    "disease": "Atelectasis",
+    "image_index": "00014196_002.png",
+    "patient_id": 14196,
+    "patient_age": 52,
+    "patient_gender": "M",
+    "finding_labels": "Atelectasis|Effusion",
+    "view_position": "PA"
+  },
+  {
+    "disease": "Cardiomegaly",
+    "image_index": "00007094_000.png",
+    "patient_id": 7094,
+    "patient_age": 61,
+    "patient_gender": "F",
+    "finding_labels": "Cardiomegaly",
+    "view_position": "PA"
+  },
+  {
+    "disease": "Consolidation",
+    "image_index": "00028341_006.png",
+    "patient_id": 28341,
+    "patient_age": 10,
+    "patient_gender": "M",
+    "finding_labels": "Consolidation|Effusion",
+    "view_position": "AP"
+  },
+  {
+    "disease": "Edema",
+    "image_index": "00013060_002.png",
+    "patient_id": 13060,
+    "patient_age": 59,
+    "patient_gender": "F",
+    "finding_labels": "Edema|Infiltration",
+    "view_position": "AP"
+  },
+  {
+    "disease": "Effusion",
+    "image_index": "00019884_003.png",
+    "patient_id": 19884,
+    "patient_age": 53,
+    "patient_gender": "F",
+    "finding_labels": "Effusion",
+    "view_position": "PA"
+  },
+  {
+    "disease": "Emphysema",
+    "image_index": "00008468_020.png",
+    "patient_id": 8468,
+    "patient_age": 11,
+    "patient_gender": "F",
+    "finding_labels": "Emphysema",
+    "view_position": "AP"
+  },
+  {
+    "disease": "Fibrosis",
+    "image_index": "00003098_012.png",
+    "patient_id": 3098,
+    "patient_age": 37,
+    "patient_gender": "M",
+    "finding_labels": "Fibrosis",
+    "view_position": "PA"
+  },
+  {
+    "disease": "Hernia",
+    "image_index": "00000284_000.png",
+    "patient_id": 284,
+    "patient_age": 86,
+    "patient_gender": "F",
+    "finding_labels": "Hernia",
+    "view_position": "PA"
+  },
+  {
+    "disease": "Infiltration",
+    "image_index": "00006952_007.png",
+    "patient_id": 6952,
+    "patient_age": 30,
+    "patient_gender": "M",
+    "finding_labels": "Infiltration",
+    "view_position": "AP"
+  },
+  {
+    "disease": "Mass",
+    "image_index": "00011723_028.png",
+    "patient_id": 11723,
+    "patient_age": 66,
+    "patient_gender": "M",
+    "finding_labels": "Mass|Nodule",
+    "view_position": "PA"
+  },
+  {
+    "disease": "Nodule",
+    "image_index": "00029891_000.png",
+    "patient_id": 29891,
+    "patient_age": 25,
+    "patient_gender": "F",
+    "finding_labels": "Nodule",
+    "view_position": "AP"
+  },
+  {
+    "disease": "Pleural_Thickening",
+    "image_index": "00003230_009.png",
+    "patient_id": 3230,
+    "patient_age": 50,
+    "patient_gender": "F",
+    "finding_labels": "Infiltration|Pleural_Thickening",
+    "view_position": "PA"
+  },
+  {
+    "disease": "Pneumonia",
+    "image_index": "00002360_002.png",
+    "patient_id": 2360,
+    "patient_age": 33,
+    "patient_gender": "F",
+    "finding_labels": "Pneumonia",
+    "view_position": "PA"
+  },
+  {
+    "disease": "Pneumothorax",
+    "image_index": "00020779_001.png",
+    "patient_id": 20779,
+    "patient_age": 24,
+    "patient_gender": "F",
+    "finding_labels": "Infiltration|Mass|Pleural_Thickening|Pneumothorax",
+    "view_position": "PA"
+  }
+]

@@ -41,10 +41,11 @@ WHY DO WE NEED THIS?
 # - They make the package more portable and reusable
 
 from .data_exploration import render_data_exploration_tab  # Tab 1: Dataset overview and demographics
-from .hypothesis_validation import render_hypothesis_validation_tab  # Tab 2: Statistical hypothesis tests
-from .model_performance import render_model_performance_tab  # Tab 3: Model evaluation metrics
-from .disease_detector import render_disease_detector_tab  # Tab 4: Interactive disease prediction
-from .clinical_insights import render_clinical_insights_tab  # Tab 5: Key findings and recommendations
+from .sample_images import render_sample_images_tab  # Tab 2: Sample X-ray images
+from .hypothesis_validation import render_hypothesis_validation_tab  # Tab 3: Statistical hypothesis tests
+from .model_performance import render_model_performance_tab  # Tab 4: Model evaluation metrics
+from .disease_detector import render_disease_detector_tab  # Tab 5: Interactive disease prediction
+from .clinical_insights import render_clinical_insights_tab  # Tab 6: Key findings and recommendations
 
 # ============================================================================
 # __all__ - Define what gets exported from this package
@@ -59,9 +60,11 @@ from .clinical_insights import render_clinical_insights_tab  # Tab 5: Key findin
 # 3. IDE support: Helps code editors provide better autocomplete
 # 4. Explicit is better than implicit: Clear about what's meant to be used externally
 
-# In our case, we export all 5 render functions since they're all meant to be used by app.py
+# In our case, we export all 6 dashboard tab render functions
+# Note: radiology_guide is imported separately as it's a distinct view, not a tab
 __all__ = [
     "render_data_exploration_tab",
+    "render_sample_images_tab",
     "render_hypothesis_validation_tab",
     "render_model_performance_tab",
     "render_disease_detector_tab",
