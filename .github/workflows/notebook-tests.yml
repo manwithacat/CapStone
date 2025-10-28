@@ -7,6 +7,7 @@ on:
       - 'jupyter_notebooks/**'
       - 'src/**'
       - 'requirements.txt'
+      - 'requirements-dev.txt'
       - 'setup.py'
       - 'pytest.ini'
       - '.github/workflows/notebook-tests.yml'
@@ -16,6 +17,7 @@ on:
       - 'jupyter_notebooks/**'
       - 'src/**'
       - 'requirements.txt'
+      - 'requirements-dev.txt'
   workflow_dispatch:  # Allow manual triggering
 
 jobs:
@@ -51,7 +53,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
           pip install -e .
 
       - name: Verify installations
@@ -117,7 +119,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libhdf5-dev libopencv-dev
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
           pip install -e .
 
       - name: Prepare notebooks

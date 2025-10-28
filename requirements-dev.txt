@@ -1,0 +1,32 @@
+# ============================================================================
+# Development Dependencies
+# ============================================================================
+# Install with: pip install -r requirements-dev.txt
+# This includes all production dependencies plus development tools
+
+# Include production dependencies
+-r requirements.txt
+
+# ============================================================================
+# Code Quality & Linting
+# ============================================================================
+ruff>=0.1.0                  # Fast Python linter (replaces flake8, isort, etc.)
+black>=23.0.0                # Code formatter for consistent style
+pyright>=1.1.350             # Type checker (powers VS Code Pylance)
+
+# ============================================================================
+# Jupyter Notebook Development
+# ============================================================================
+jupyter>=1.0.0               # Jupyter notebook environment
+notebook>=7.0.0              # Jupyter notebook interface
+ipykernel>=6.25.0            # IPython kernel for Jupyter
+nbstripout>=0.6.0            # Strip notebook outputs for version control
+nbdime>=4.0.0                # Notebook diff and merge tools
+
+# ============================================================================
+# Testing & CI/CD
+# ============================================================================
+pytest>=7.4.0                # Testing framework
+nbmake>=1.5.0                # Execute and test Jupyter notebooks
+pytest-xdist>=3.5.0          # Parallel test execution
+pytest-timeout>=2.2.0        # Timeout support for long-running tests

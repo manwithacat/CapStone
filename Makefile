@@ -23,9 +23,9 @@ help:
 	@echo "  make clean         - remove caches and temp files"
 
 install:
-	@echo "Installing project dependencies..."
+	@echo "Installing development dependencies..."
 	$(PY) -m pip install --upgrade pip
-	$(PY) -m pip install -r requirements.txt
+	$(PY) -m pip install -r requirements-dev.txt
 	@echo ""
 	@echo "Installing project package in editable mode..."
 	$(PY) -m pip install -e .
@@ -44,6 +44,8 @@ install:
 	@echo "  1. Reload VS Code window (Cmd+Shift+P → 'Reload Window')"
 	@echo "  2. Run: make check-pylance (to verify setup)"
 	@echo "  3. Start working: jupyter notebook or make app"
+	@echo ""
+	@echo "💡 For production deployment, use: pip install -r requirements.txt"
 
 lint:
 	ruff check .
