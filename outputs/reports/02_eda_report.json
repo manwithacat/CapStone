@@ -1,0 +1,103 @@
+{
+  "dataset_summary": {
+    "total_images": 112120,
+    "unique_patients": 30805
+  },
+  "age_statistics": {
+    "mean": 46.90146271851587,
+    "median": 49.0,
+    "std": 16.83992253338176,
+    "min": 1.0,
+    "max": 414.0
+  },
+  "gender_distribution": {
+    "M": 63340,
+    "F": 48780
+  },
+  "disease_distribution": [
+    {
+      "Disease": "No Finding",
+      "Count": 60361,
+      "Percentage": 53.83606849803782
+    },
+    {
+      "Disease": "Infiltration",
+      "Count": 19894,
+      "Percentage": 17.743489118801286
+    },
+    {
+      "Disease": "Effusion",
+      "Count": 13317,
+      "Percentage": 11.877452729218694
+    },
+    {
+      "Disease": "Atelectasis",
+      "Count": 11559,
+      "Percentage": 10.309489832322512
+    },
+    {
+      "Disease": "Nodule",
+      "Count": 6331,
+      "Percentage": 5.646628612201213
+    },
+    {
+      "Disease": "Mass",
+      "Count": 5782,
+      "Percentage": 5.1569746699964325
+    },
+    {
+      "Disease": "Pneumothorax",
+      "Count": 5302,
+      "Percentage": 4.728861933642526
+    },
+    {
+      "Disease": "Consolidation",
+      "Count": 4667,
+      "Percentage": 4.16250445950767
+    },
+    {
+      "Disease": "Pleural_Thickening",
+      "Count": 3385,
+      "Percentage": 3.0190866928291116
+    },
+    {
+      "Disease": "Cardiomegaly",
+      "Count": 2776,
+      "Percentage": 2.4759186585800927
+    },
+    {
+      "Disease": "Emphysema",
+      "Count": 2516,
+      "Percentage": 2.244024259721727
+    },
+    {
+      "Disease": "Edema",
+      "Count": 2303,
+      "Percentage": 2.054049232964681
+    },
+    {
+      "Disease": "Fibrosis",
+      "Count": 1686,
+      "Percentage": 1.5037459864430966
+    },
+    {
+      "Disease": "Pneumonia",
+      "Count": 1431,
+      "Percentage": 1.2763110952550838
+    },
+    {
+      "Disease": "Hernia",
+      "Count": 227,
+      "Percentage": 0.20246164823403495
+    }
+  ],
+  "class_imbalance_ratio": 265.90748898678413,
+  "multi_label_stats": {
+    "single_label": 91324,
+    "two_labels": 14306,
+    "three_labels": 4856,
+    "four_plus_labels": 1634,
+    "max_labels": 9,
+    "avg_labels": 1.2623706742775598
+  }
+}
