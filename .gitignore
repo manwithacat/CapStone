@@ -139,8 +139,29 @@ temp/
 # Setup tracking files (local development only)
 PROJECT_SETUP_COMPLETE.md
 
-# Data files
-data/
+# Data files - Exclude large image datasets but include metadata CSV files
+# NIH Chest X-Ray images (112K images, ~42GB total)
+data/raw/images*/
+data/raw/*.png
+data/raw/*.jpg
+data/raw/*.jpeg
+data/raw/*.dcm
+
+# Expert labels (from Google Cloud)
+data/raw/expert_labels/
+
+# Processed data (large image files)
+data/processed/train/
+data/processed/val/
+data/processed/test/
+data/processed/*.npy
+data/processed/*.h5
+data/processed/*.hdf5
+
+# Allow small metadata CSV files (needed for dashboard)
+!data/raw/*.csv
+!data/processed/*.csv
+!data/processed/*.json
 
 # ============================================================================
 # Legacy / Deprecated (kept for reference, may remove later)

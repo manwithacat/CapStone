@@ -1,0 +1,67 @@
+{
+  "image_config": {
+    "img_height": 224,
+    "img_width": 224,
+    "channels": 3,
+    "train_ratio": 0.7,
+    "val_ratio": 0.15,
+    "test_ratio": 0.15,
+    "batch_size": 32,
+    "num_classes": 14,
+    "pixel_scaling": "imagenet",
+    "random_state": 42
+  },
+  "disease_classes": [
+    "Atelectasis",
+    "Cardiomegaly",
+    "Consolidation",
+    "Edema",
+    "Effusion",
+    "Emphysema",
+    "Fibrosis",
+    "Hernia",
+    "Infiltration",
+    "Mass",
+    "Nodule",
+    "Pleural_Thickening",
+    "Pneumonia",
+    "Pneumothorax"
+  ],
+  "num_classes": 14,
+  "data_splits": {
+    "train": {
+      "patients": 21563,
+      "images": 78566
+    },
+    "val": {
+      "patients": 4621,
+      "images": 17063
+    },
+    "test": {
+      "patients": 4621,
+      "images": 16491
+    }
+  },
+  "class_weights": {
+    "Atelectasis": 8.592918192918193,
+    "Cardiomegaly": 40.547329455314646,
+    "Consolidation": 23.33890954151177,
+    "Edema": 47.2,
+    "Effusion": 7.324433142614961,
+    "Emphysema": 46.15846338535414,
+    "Fibrosis": 66.9636678200692,
+    "Hernia": 496.253164556962,
+    "Infiltration": 4.665272569945198,
+    "Mass": 17.442723004694837,
+    "Nodule": 16.72698555956679,
+    "Pleural_Thickening": 32.024800336275746,
+    "Pneumonia": 77.9608040201005,
+    "Pneumothorax": 19.839787798408487
+  },
+  "augmentation": {
+    "horizontal_flip": true,
+    "shift_scale_rotate": true,
+    "brightness_contrast": true,
+    "gaussian_noise": true
+  }
+}
