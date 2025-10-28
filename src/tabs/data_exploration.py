@@ -73,7 +73,7 @@ def render_data_exploration_tab(df, eda_report, disease_colors=None):
         # Age distribution
         age_fig_path = figures_dir / "02_age_distribution.png"
         if age_fig_path.exists():
-            st.image(str(age_fig_path), caption="Age Distribution", use_container_width=True)
+            st.image(str(age_fig_path), caption="Age Distribution", width="stretch")
         else:
             st.info("Age distribution figure will appear here after running Notebook 02")
 
@@ -81,7 +81,7 @@ def render_data_exploration_tab(df, eda_report, disease_colors=None):
         # Gender distribution
         gender_fig_path = figures_dir / "02_gender_distribution.png"
         if gender_fig_path.exists():
-            st.image(str(gender_fig_path), caption="Gender Distribution", use_container_width=True)
+            st.image(str(gender_fig_path), caption="Gender Distribution", width="stretch")
         else:
             st.info("Gender distribution figure will appear here after running Notebook 02")
 
@@ -95,7 +95,7 @@ def render_data_exploration_tab(df, eda_report, disease_colors=None):
     # Disease prevalence chart
     disease_dist_path = figures_dir / "02_disease_distribution.png"
     if disease_dist_path.exists():
-        st.image(str(disease_dist_path), caption="Disease Prevalence Across Dataset", use_container_width=True)
+        st.image(str(disease_dist_path), caption="Disease Prevalence Across Dataset", width="stretch")
     else:
         st.info("Disease distribution figure will appear here after running Notebook 02")
 
@@ -113,7 +113,7 @@ def render_data_exploration_tab(df, eda_report, disease_colors=None):
 
     cooccurrence_path = figures_dir / "02_disease_cooccurrence.png"
     if cooccurrence_path.exists():
-        st.image(str(cooccurrence_path), caption="Disease Co-occurrence Heatmap", use_container_width=True)
+        st.image(str(cooccurrence_path), caption="Disease Co-occurrence Heatmap", width="stretch")
     else:
         st.info("Disease co-occurrence heatmap will appear here after running Notebook 02")
 
@@ -140,7 +140,7 @@ def render_data_exploration_tab(df, eda_report, disease_colors=None):
         st.components.v1.html(html_content, height=1200, scrolling=True)
     elif sample_xrays_static.exists():
         # Fallback to static PNG if HTML not available
-        st.image(str(sample_xrays_static), caption="Sample X-Ray Images with Labels", use_container_width=True)
+        st.image(str(sample_xrays_static), caption="Sample X-Ray Images with Labels", width="stretch")
         st.info("💡 Interactive version with hover tooltips available in Notebook 02")
     else:
         st.info("Sample X-ray images will appear here after running Notebook 02")
@@ -158,9 +158,9 @@ def render_data_exploration_tab(df, eda_report, disease_colors=None):
     ]]
 
     if display_cols:
-        st.dataframe(df[display_cols].head(100), use_container_width=True)
+        st.dataframe(df[display_cols].head(100), width="stretch")
     else:
-        st.dataframe(df.head(100), use_container_width=True)
+        st.dataframe(df.head(100), width="stretch")
 
     # -------------------------------------------------------------------------
     # DATASET STATISTICS FROM EDA REPORT

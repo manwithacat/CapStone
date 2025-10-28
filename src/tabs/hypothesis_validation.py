@@ -72,7 +72,7 @@ def render_hypothesis_validation_tab(df, hypothesis_report, disease_colors=None)
 
     age_disease_path = figures_dir / "04_age_disease_distributions.png"
     if age_disease_path.exists():
-        st.image(str(age_disease_path), caption="Age Distribution by Disease", use_container_width=True)
+        st.image(str(age_disease_path), caption="Age Distribution by Disease", width="stretch")
 
         if hypothesis_report and 'hypothesis_1_age_disease' in hypothesis_report:
             h1_results = hypothesis_report['hypothesis_1_age_disease']
@@ -103,14 +103,14 @@ def render_hypothesis_validation_tab(df, hypothesis_report, disease_colors=None)
 
     gender_disease_path = figures_dir / "04_gender_disease_prevalence.png"
     if gender_disease_path.exists():
-        st.image(str(gender_disease_path), caption="Disease Prevalence by Gender", use_container_width=True)
+        st.image(str(gender_disease_path), caption="Disease Prevalence by Gender", width="stretch")
 
         if hypothesis_report and 'hypothesis_2_gender_disease' in hypothesis_report:
             h2_results = hypothesis_report['hypothesis_2_gender_disease']
 
             # Display summary statistics
             st.markdown("**Statistical Test Results:**")
-            st.dataframe(pd.DataFrame(h2_results.get('test_results', {})), use_container_width=True)
+            st.dataframe(pd.DataFrame(h2_results.get('test_results', {})), width="stretch")
 
             # Interpretation
             significant_diseases = [d for d, p in h2_results.get('test_results', {}).items() if p < 0.05]
@@ -131,7 +131,7 @@ def render_hypothesis_validation_tab(df, hypothesis_report, disease_colors=None)
 
     disease_corr_path = figures_dir / "04_disease_correlation_heatmap.png"
     if disease_corr_path.exists():
-        st.image(str(disease_corr_path), caption="Disease Co-occurrence Correlation Matrix", use_container_width=True)
+        st.image(str(disease_corr_path), caption="Disease Co-occurrence Correlation Matrix", width="stretch")
 
         st.markdown("""
         **Interpretation:**
@@ -156,7 +156,7 @@ def render_hypothesis_validation_tab(df, hypothesis_report, disease_colors=None)
 
     disease_count_path = figures_dir / "04_disease_count_distribution.png"
     if disease_count_path.exists():
-        st.image(str(disease_count_path), caption="Number of Diseases per Patient", use_container_width=True)
+        st.image(str(disease_count_path), caption="Number of Diseases per Patient", width="stretch")
 
         st.markdown("""
         This chart shows how many diseases are present in each X-ray image. Many patients

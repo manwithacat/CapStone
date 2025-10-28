@@ -160,7 +160,7 @@ def render_disease_detector_tab(df, disease_colors=None):
         "Confidence": ["-"] * 14
     }
 
-    st.dataframe(pd.DataFrame(example_predictions), use_container_width=True)
+    st.dataframe(pd.DataFrame(example_predictions), width="stretch")
 
     st.markdown("---")
 

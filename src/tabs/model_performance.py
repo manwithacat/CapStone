@@ -60,7 +60,7 @@ def render_model_performance_tab(df, disease_colors=None):
         "Status": ["Pending", "Pending", "Pending", "Pending", "Pending", "Pending", "Pending"]
     }
 
-    st.dataframe(pd.DataFrame(example_data), use_container_width=True)
+    st.dataframe(pd.DataFrame(example_data), width="stretch")
 
     # -------------------------------------------------------------------------
     # PER-CLASS PERFORMANCE
