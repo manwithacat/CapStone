@@ -23,8 +23,8 @@ from src.tabs import (
     render_clinical_insights_tab,
 )
 
-# Separate view for radiology guide
-from src.tabs.radiology_guide import render_radiology_guide_tab
+# View modules: Standalone page views (separate from dashboard tabs)
+from src.views import render_radiology_guide_tab
 
 # ============================================================================
 # COLOR SCHEME CONFIGURATION
