@@ -173,9 +173,13 @@ def show_xray_modal(disease: str, metadata: Optional[Dict] = None):
             st.markdown(metadata['attribution'], unsafe_allow_html=True)
 
 
+@st.fragment
 def render_clickable_xray(disease: str, use_thumbnail: bool = True, caption: Optional[str] = None, width: Optional[int] = None):
     """
     Render a clickable X-ray image that opens in a modal when clicked.
+
+    Uses @st.fragment to prevent full page rerun when button is clicked,
+    which preserves the active tab state.
 
     Args:
         disease: Disease name (e.g., "Atelectasis")
@@ -214,6 +218,7 @@ def render_clickable_xray(disease: str, use_thumbnail: bool = True, caption: Opt
         st.image(str(img_path))
 
         # Clickable button integrated with the image
+        # Fragment prevents full page rerun, preserving tab state
         if st.button(button_label, key=f"modal_{disease_slug}", use_container_width=True, type="secondary"):
             show_xray_modal(disease, metadata)
 
