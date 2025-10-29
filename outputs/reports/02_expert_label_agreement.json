@@ -1,0 +1,160 @@
+{
+  "all_findings": {
+    "source": "Nabulsi et al., Scientific Reports 2021",
+    "total_images": 810,
+    "compared_images": 810,
+    "diseases": 14,
+    "average_agreement_rate": 88.7742504409171,
+    "average_sensitivity": 23.129664643168134,
+    "average_specificity": 95.70891246601067,
+    "per_disease_metrics": [
+      {
+        "Disease": "Atelectasis",
+        "Source": "All Findings",
+        "N_Images": 810,
+        "Agreement_Rate": 66.79012345679011,
+        "Sensitivity": 22.442244224422442,
+        "Specificity": 93.29388560157791
+      },
+      {
+        "Disease": "Cardiomegaly",
+        "Source": "All Findings",
+        "N_Images": 810,
+        "Agreement_Rate": 91.11111111111111,
+        "Sensitivity": 27.160493827160494,
+        "Specificity": 98.21673525377228
+      },
+      {
+        "Disease": "Effusion",
+        "Source": "All Findings",
+        "N_Images": 810,
+        "Agreement_Rate": 76.66666666666667,
+        "Sensitivity": 37.610619469026545,
+        "Specificity": 91.78082191780823
+      },
+      {
+        "Disease": "Infiltration",
+        "Source": "All Findings",
+        "N_Images": 810,
+        "Agreement_Rate": 82.8395061728395,
+        "Sensitivity": 21.311475409836063,
+        "Specificity": 87.85046728971963
+      },
+      {
+        "Disease": "Mass",
+        "Source": "All Findings",
+        "N_Images": 810,
+        "Agreement_Rate": 88.76543209876543,
+        "Sensitivity": 33.33333333333333,
+        "Specificity": 96.48382559774966
+      },
+      {
+        "Disease": "Nodule",
+        "Source": "All Findings",
+        "N_Images": 810,
+        "Agreement_Rate": 84.81481481481481,
+        "Sensitivity": 29.230769230769234,
+        "Specificity": 95.44117647058825
+      },
+      {
+        "Disease": "Pneumonia",
+        "Source": "All Findings",
+        "N_Images": 810,
+        "Agreement_Rate": 98.27160493827161,
+        "Sensitivity": 0.0,
+        "Specificity": 98.51485148514851
+      },
+      {
+        "Disease": "Pneumothorax",
+        "Source": "All Findings",
+        "N_Images": 810,
+        "Agreement_Rate": 87.90123456790123,
+        "Sensitivity": 55.88235294117647,
+        "Specificity": 94.3620178041543
+      },
+      {
+        "Disease": "Consolidation",
+        "Source": "All Findings",
+        "N_Images": 810,
+        "Agreement_Rate": 88.14814814814815,
+        "Sensitivity": 14.457831325301203,
+        "Specificity": 96.56121045392022
+      },
+      {
+        "Disease": "Edema",
+        "Source": "All Findings",
+        "N_Images": 810,
+        "Agreement_Rate": 96.17283950617283,
+        "Sensitivity": 0.0,
+        "Specificity": 98.98348157560356
+      },
+      {
+        "Disease": "Emphysema",
+        "Source": "All Findings",
+        "N_Images": 810,
+        "Agreement_Rate": 94.5679012345679,
+        "Sensitivity": 14.285714285714285,
+        "Specificity": 95.26774595267746
+      },
+      {
+        "Disease": "Fibrosis",
+        "Source": "All Findings",
+        "N_Images": 810,
+        "Agreement_Rate": 96.04938271604938,
+        "Sensitivity": 7.6923076923076925,
+        "Specificity": 97.49058971141781
+      },
+      {
+        "Disease": "Pleural_Thickening",
+        "Source": "All Findings",
+        "N_Images": 810,
+        "Agreement_Rate": 91.35802469135803,
+        "Sensitivity": 20.408163265306122,
+        "Specificity": 95.9264126149803
+      },
+      {
+        "Disease": "Hernia",
+        "Source": "All Findings",
+        "N_Images": 810,
+        "Agreement_Rate": 99.38271604938271,
+        "Sensitivity": 40.0,
+        "Specificity": 99.75155279503105
+      }
+    ]
+  },
+  "four_findings": {
+    "source": "Majkowska et al., Radiology 2020",
+    "total_images": 4376,
+    "compared_images": 4376,
+    "findings": 3,
+    "average_agreement_rate": 82.32784887263864,
+    "average_sensitivity": 44.129176834229646,
+    "average_specificity": 92.57134480629368,
+    "per_finding_metrics": [
+      {
+        "Disease": "Pneumothorax",
+        "Source": "Four Findings",
+        "N_Images": 4376,
+        "Agreement_Rate": 94.10420475319927,
+        "Sensitivity": 45.79831932773109,
+        "Specificity": 96.88255195746737
+      },
+      {
+        "Disease": "Airspace opacity",
+        "Source": "Four Findings",
+        "N_Images": 4376,
+        "Agreement_Rate": 65.40219378427788,
+        "Sensitivity": 44.27516158818098,
+        "Specificity": 86.10859728506787
+      },
+      {
+        "Disease": "Nodule or mass",
+        "Source": "Four Findings",
+        "N_Images": 4376,
+        "Agreement_Rate": 87.47714808043877,
+        "Sensitivity": 42.31404958677686,
+        "Specificity": 94.7228851763458
+      }
+    ]
+  }
+}
