@@ -45,7 +45,7 @@ cat > kaggle_kernel/kernel-metadata.json << METADATA
   "enable_gpu": true,
   "enable_internet": true,
   "dataset_sources": [
-    "nih-chest-xrays",
+    "nih-chest-xrays/data",
     "$KAGGLE_USERNAME/nih-chest-xray-splits"
   ],
   "competition_sources": [],
