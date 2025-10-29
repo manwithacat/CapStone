@@ -1,0 +1,69 @@
+# Baseline XGBoost Image Classification Experiment
+# Pipeline: Image Paths → HOG+GLCM+Stats → StandardScaler → MultiOutput(XGBoost)
+
+experiment:
+  name: "baseline_xgboost_pipeline"
+  version: "v1"
+  description: "Hand-crafted features + XGBoost for chest X-ray disease classification"
+
+# Image preprocessing
+image:
+  img_size: [128, 128]  # (width, height) for feature extraction
+
+# HOG (Histogram of Oriented Gradients) features
+hog:
+  orientations: 9
+  pixels_per_cell: [8, 8]
+  cells_per_block: [2, 2]
+  block_norm: "L2-Hys"
+
+# GLCM (Gray-Level Co-occurrence Matrix) texture features
+glcm:
+  levels: 8  # Quantize to 8 gray levels for speed
+  distances: [1]  # Pixel pair distances
+  angles: [0, 0.785398, 1.570796, 2.356194]  # 0°, 45°, 90°, 135° (in radians)
+  properties: ["contrast", "homogeneity", "energy", "correlation"]
+
+# Statistical pixel features
+stats:
+  canny_threshold1: 50
+  canny_threshold2: 150
+
+# XGBoost parameters
+xgb:
+  n_estimators: 100
+  max_depth: 6
+  learning_rate: 0.1
+  eval_metric: "logloss"
+  tree_method: "hist"  # Faster histogram-based algorithm
+  verbosity: 0
+
+# Runtime settings
+runtime:
+  random_state: 42
+  n_jobs: -1  # Use all CPU cores
+
+# Cross-validation
+cv:
+  n_folds: 5
+  shuffle: true
+
+# Output paths
+output:
+  models_dir: "models/saved_models"
+  reports_dir: "outputs/reports"
+  figures_dir: "outputs/figures"
+
+# Dataset paths (to be overridden in notebook/CLI)
+data:
+  train_split: "data/processed/train_split.csv"
+  val_split: "data/processed/val_split.csv"
+  test_split: "data/processed/test_split.csv"
+  preprocessing_config: "data/processed/preprocessing_config.json"
+
+# Sampling for development/testing
+sampling:
+  enabled: true  # Set to false for full dataset
+  train_size: 5000
+  val_size: 1000
+  test_size: 1000

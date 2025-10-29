@@ -46,3 +46,4 @@ kagglehub>=0.2.0             # Modern Kaggle dataset download API
 kaggle>=1.6.0                # Legacy Kaggle API (for authentication)
 requests>=2.31.0             # HTTP library for data fetching
 tqdm>=4.65.0                 # Progress bars for data loading
+pyyaml>=6.0                  # YAML configuration file parsing
