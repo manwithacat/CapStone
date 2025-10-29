@@ -24,7 +24,7 @@ cp data/processed/class_weights.json $STAGING_DIR/
 cat > $STAGING_DIR/dataset-metadata.json << 'METADATA'
 {
   "title": "NIH Chest X-Ray: Stratified Train/Val/Test Splits",
-  "subtitle": "Patient-level stratified splits with class weights and preprocessing config for 112K chest X-rays",
+  "subtitle": "Patient-level splits with class weights for 112K chest X-rays",
   "id": "YOUR_USERNAME/nih-chest-xray-splits",
   "licenses": [{"name": "CC0-1.0"}],
   "keywords": [
