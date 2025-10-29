@@ -51,26 +51,33 @@ def load_data():
     """
     Load processed chest X-ray metadata and reports.
 
-    This function loads the exploratory data analysis results and
-    processed metadata from the data pipeline. If files don't exist,
-    it provides graceful fallbacks and informative messages.
+    This function loads the preprocessed metadata from Notebook 02 (parquet)
+    which includes optimal labels (3-tier hierarchy) and expert label integration.
+    If the parquet doesn't exist, falls back to raw CSV.
 
     Returns:
         tuple: (main_df, eda_report, hypothesis_report)
-            - main_df: DataFrame with patient/image metadata
+            - main_df: DataFrame with patient/image metadata and optimal labels
             - eda_report: Dict with EDA statistics
             - hypothesis_report: Dict with hypothesis test results
     """
     root = pathlib.Path(__file__).resolve().parent
 
-    # Load main metadata
-    data_entry_path = root / "data" / "raw" / "Data_Entry_2017.csv"
+    # Try loading preprocessed parquet first (preferred - has optimal labels)
+    parquet_path = root / "data" / "processed" / "metadata_with_optimal_labels.parquet"
     main_df = pd.DataFrame()
 
-    if data_entry_path.exists():
-        main_df = pd.read_csv(data_entry_path)
+    if parquet_path.exists():
+        main_df = pd.read_parquet(parquet_path)
+        st.sidebar.success("✅ Using preprocessed data with optimal labels")
     else:
-        st.warning("⚠️ Data not found. Please run Notebook 01 to download the dataset.")
+        # Fallback to raw CSV
+        data_entry_path = root / "data" / "raw" / "Data_Entry_2017.csv"
+        if data_entry_path.exists():
+            main_df = pd.read_csv(data_entry_path)
+            st.sidebar.warning("⚠️ Using raw CSV data. Run Notebook 02 to generate optimized parquet.")
+        else:
+            st.warning("⚠️ Data not found. Please run Notebook 01 to download the dataset.")
 
     # Load EDA report
     eda_report_path = root / "outputs" / "reports" / "02_eda_report.json"
