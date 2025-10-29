@@ -118,27 +118,41 @@ elapsed=0
 
 while [ $elapsed -lt $MAX_WAIT ]; do
     STATUS=$(kaggle kernels status "$KAGGLE_USERNAME/$KERNEL_SLUG" 2>/dev/null || echo "error")
-    
+
     case "$STATUS" in
         *"complete"*)
+            # Check if it completed successfully or with errors
             echo ""
-            echo "✅ Training complete!"
+            echo "✅ Kernel execution complete"
+            echo ""
+            echo "📥 Downloading logs to check for errors..."
+            kaggle kernels output "$KAGGLE_USERNAME/$KERNEL_SLUG" -p /tmp/kaggle_output 2>/dev/null
+
+            if grep -qi "error\|exception\|failed\|traceback" /tmp/kaggle_output/*.log 2>/dev/null; then
+                echo "❌ Errors detected in logs!"
+                echo "   Log file: /tmp/kaggle_output/*.log"
+                echo "   Kernel URL: $KERNEL_URL"
+                exit 1
+            else
+                echo "✅ Training successful!"
+            fi
             break
             ;;
         *"running"*)
             echo -n "."
             ;;
-        *"error"*|*"failed"*)
+        *"error"*|*"failed"*|*"cancelAcknowledged"*)
             echo ""
-            echo "❌ Training failed. Check logs:"
-            echo "   $KERNEL_URL"
+            echo "❌ Kernel failed or was cancelled"
+            echo "   Status: $STATUS"
+            echo "   Check: $KERNEL_URL"
             exit 1
             ;;
         *)
             echo -n "."
             ;;
     esac
-    
+
     sleep $POLL_INTERVAL
     elapsed=$((elapsed + POLL_INTERVAL))
 done
