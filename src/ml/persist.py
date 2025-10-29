@@ -167,11 +167,8 @@ def load_pipeline(model_dir: Path) -> Pipeline:
         # Create XGBClassifier with same params
         estimator = XGBClassifier(**xgb_params)
 
-        # Load trained model
+        # Load trained model (classes_ is set automatically by XGBoost)
         estimator.load_model(str(json_path))
-
-        # Set classes (required for sklearn compatibility)
-        estimator.classes_ = np.array(classes_per_output[i])
 
         estimators.append(estimator)
 
@@ -182,7 +179,6 @@ def load_pipeline(model_dir: Path) -> Pipeline:
     )
     multi_output.estimators_ = estimators
     multi_output.classes_ = [np.array(c) for c in classes_per_output]
-    multi_output.n_outputs_ = n_outputs
 
     # Reconstruct Pipeline
     pipeline = Pipeline([
