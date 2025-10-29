@@ -3,6 +3,11 @@
 
 set -e
 
+# Load environment variables from .env if it exists
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | grep -v '^$' | xargs)
+fi
+
 KAGGLE_USERNAME="${KAGGLE_USERNAME:-yourusername}"
 KERNEL_SLUG="cnn-development-cloud"
 NOTEBOOK_PATH="jupyter_notebooks/06b_cnn_kaggle.ipynb"

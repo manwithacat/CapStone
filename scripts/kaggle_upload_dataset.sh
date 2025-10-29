@@ -3,6 +3,11 @@
 
 set -e
 
+# Load environment variables from .env if it exists
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | grep -v '^$' | xargs)
+fi
+
 KAGGLE_USERNAME="${KAGGLE_USERNAME:-yourusername}"
 DATASET_SLUG="nih-chest-xray-splits"
 

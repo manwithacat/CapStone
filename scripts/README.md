@@ -4,6 +4,18 @@ Fully automated cloud training on Kaggle P100 GPU - no browser needed!
 
 ## 🚀 Quick Start
 
+### Option 1: Using .env file (recommended)
+
+```bash
+# 1. Edit .env file and uncomment:
+# KAGGLE_USERNAME=your-kaggle-username
+
+# 2. Run complete pipeline
+./scripts/kaggle_full_pipeline.sh
+```
+
+### Option 2: Using environment variable
+
 ```bash
 # Set your Kaggle username
 export KAGGLE_USERNAME="your-kaggle-username"

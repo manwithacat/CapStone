@@ -29,11 +29,21 @@ ls -la .kaggle/kaggle.json
 
 ### 2. Set Your Kaggle Username
 
+**Option 1: Via .env file (recommended)**
+
+```bash
+# Edit .env file in project root
+# Uncomment and set:
+KAGGLE_USERNAME=your-actual-username
+```
+
+**Option 2: Via environment variable**
+
 ```bash
 export KAGGLE_USERNAME="your-actual-username"  # Get from https://www.kaggle.com/settings
 ```
 
-Or edit the scripts to replace `yourusername` with your actual Kaggle username.
+The .env method is recommended as it persists across terminal sessions.
 
 ---
 
@@ -57,7 +67,12 @@ This runs all steps automatically:
 ### Step 1: Upload Dataset (One-Time Setup)
 
 ```bash
+# Set your username (if not already in .env)
 export KAGGLE_USERNAME="your-username"
+
+# Or edit .env file and uncomment KAGGLE_USERNAME
+
+# Run upload script
 ./scripts/kaggle_upload_dataset.sh
 ```
 

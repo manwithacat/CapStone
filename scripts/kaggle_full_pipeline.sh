@@ -9,12 +9,26 @@ echo "║  CNN Training on P100 GPU - Fully Automated              ║"
 echo "╚═══════════════════════════════════════════════════════════╝"
 echo ""
 
+# Load environment variables from .env if it exists
+if [ -f .env ]; then
+    echo "📋 Loading configuration from .env..."
+    # Export variables from .env (skip comments and empty lines)
+    export $(grep -v '^#' .env | grep -v '^$' | xargs)
+fi
+
 # Check environment
 KAGGLE_USERNAME="${KAGGLE_USERNAME:-}"
 if [ -z "$KAGGLE_USERNAME" ] || [ "$KAGGLE_USERNAME" = "yourusername" ]; then
     echo "⚠️  KAGGLE_USERNAME not set"
     echo ""
-    echo "Please set your Kaggle username:"
+    echo "Please set your Kaggle username (choose one method):"
+    echo ""
+    echo "Option 1 - Via .env file (recommended):"
+    echo "  1. Edit .env file"
+    echo "  2. Uncomment: KAGGLE_USERNAME=your-actual-username"
+    echo "  3. Re-run this script"
+    echo ""
+    echo "Option 2 - Via environment variable:"
     echo "  export KAGGLE_USERNAME=\"your-actual-username\""
     echo ""
     echo "Get your username from: https://www.kaggle.com/settings"
