@@ -34,7 +34,9 @@ Pushes notebook, monitors training, downloads results.
 
 ## 📖 Documentation
 
-See `docs/HEADLESS_KAGGLE_TRAINING.md` for complete guide.
+- **Notebook**: `jupyter_notebooks/06b_cnn_kaggle.ipynb` has comprehensive Kaggle workflow guide
+- **Full Guide**: `docs/HEADLESS_KAGGLE_TRAINING.md` - Step-by-step documentation
+- **Quick Ref**: This README
 
 ## ⏱️ Expected Runtime
 
