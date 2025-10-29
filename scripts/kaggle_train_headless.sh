@@ -29,7 +29,44 @@ fi
 
 export KAGGLE_CONFIG_DIR="$(pwd)/.kaggle"
 
+# Discover NIH Chest X-Ray dataset slug
+echo "🔍 Discovering NIH Chest X-Ray dataset..."
+NIH_DATASET_SLUG=$(kaggle datasets list --search "nih chest xray" --csv | \
+    tail -n +2 | \
+    grep -i "chest.*xray\|xray.*chest" | \
+    head -1 | \
+    cut -d',' -f1)
+
+if [ -z "$NIH_DATASET_SLUG" ]; then
+    echo "❌ Error: Could not find NIH Chest X-Ray dataset on Kaggle"
+    echo "   Searched for: 'nih chest xray'"
+    echo ""
+    echo "Manual fix:"
+    echo "  1. Find the dataset at: https://www.kaggle.com/datasets"
+    echo "  2. Note the username/dataset-slug from the URL"
+    echo "  3. Update scripts/kaggle_train_headless.sh line 48"
+    exit 1
+fi
+
+echo "✓ Found NIH dataset: $NIH_DATASET_SLUG"
+
+# Validate user's splits dataset exists
+echo "🔍 Validating your splits dataset..."
+USER_DATASET_SLUG="$KAGGLE_USERNAME/nih-chest-xray-splits"
+
+if kaggle datasets list --user "$KAGGLE_USERNAME" | grep -q "nih-chest-xray-splits"; then
+    echo "✓ Found splits dataset: $USER_DATASET_SLUG"
+else
+    echo "❌ Error: Your splits dataset not found"
+    echo "   Expected: $USER_DATASET_SLUG"
+    echo ""
+    echo "Run this first:"
+    echo "  ./scripts/kaggle_upload_dataset.sh"
+    exit 1
+fi
+
 # Create kernel metadata
+echo ""
 echo "📝 Creating kernel metadata..."
 mkdir -p kaggle_kernel
 cp "$NOTEBOOK_PATH" kaggle_kernel/notebook.ipynb
@@ -45,13 +82,17 @@ cat > kaggle_kernel/kernel-metadata.json << METADATA
   "enable_gpu": true,
   "enable_internet": true,
   "dataset_sources": [
-    "nih-chest-xrays/data",
-    "$KAGGLE_USERNAME/nih-chest-xray-splits"
+    "$NIH_DATASET_SLUG",
+    "$USER_DATASET_SLUG"
   ],
   "competition_sources": [],
   "kernel_sources": []
 }
 METADATA
+
+echo "   Linked datasets:"
+echo "   - NIH Images: $NIH_DATASET_SLUG"
+echo "   - Your Splits: $USER_DATASET_SLUG"
 
 # Push notebook to Kaggle
 echo ""
