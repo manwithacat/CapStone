@@ -29,26 +29,12 @@ fi
 
 export KAGGLE_CONFIG_DIR="$(pwd)/.kaggle"
 
-# Discover NIH Chest X-Ray dataset slug
-echo "🔍 Discovering NIH Chest X-Ray dataset..."
-NIH_DATASET_SLUG=$(kaggle datasets list --search "nih chest xray" --csv | \
-    tail -n +2 | \
-    grep -i "chest.*xray\|xray.*chest" | \
-    head -1 | \
-    cut -d',' -f1)
+# Use official NIH Chest X-Ray dataset
+# https://www.kaggle.com/datasets/nih-chest-xrays/data
+echo "🔍 Validating NIH Chest X-Ray dataset..."
+NIH_DATASET_SLUG="${NIH_IMAGE_DATASET:-nih-chest-xrays/data}"
 
-if [ -z "$NIH_DATASET_SLUG" ]; then
-    echo "❌ Error: Could not find NIH Chest X-Ray dataset on Kaggle"
-    echo "   Searched for: 'nih chest xray'"
-    echo ""
-    echo "Manual fix:"
-    echo "  1. Find the dataset at: https://www.kaggle.com/datasets"
-    echo "  2. Note the username/dataset-slug from the URL"
-    echo "  3. Update scripts/kaggle_train_headless.sh line 48"
-    exit 1
-fi
-
-echo "✓ Found NIH dataset: $NIH_DATASET_SLUG"
+echo "✓ Using NIH dataset: $NIH_DATASET_SLUG"
 
 # Validate user's splits dataset exists
 echo "🔍 Validating your splits dataset..."
