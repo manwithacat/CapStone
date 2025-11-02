@@ -1,0 +1,20 @@
+{
+  "title": "NIH Chest X-Ray: Stratified Train/Val/Test Splits",
+  "subtitle": "Patient-level splits with class weights for 112K chest X-rays",
+  "id": "manwithacat/nih-chest-xray-splits",
+  "licenses": [{"name": "CC0-1.0"}],
+  "keywords": [
+    "health",
+    "medicine",
+    "medical imaging",
+    "radiology",
+    "chest x-ray",
+    "deep learning",
+    "computer vision",
+    "disease detection",
+    "classification",
+    "healthcare",
+    "medical diagnosis"
+  ],
+  "description": "## What Makes This Different?\n\n**The base NIH Chest X-Ray dataset gives you 112K raw images.** This companion dataset gives you **production-ready splits** so you can start training immediately.\n\n### The Problem with the Base Dataset\n\nWhen using the original NIH dataset, you must:\n- ❌ Manually split 112K images into train/val/test\n- ❌ Ensure no patient appears in multiple splits (data leakage)\n- ❌ Balance disease distributions across splits\n- ❌ Calculate class weights for the severe imbalance (Hernia: 0.4% vs No Finding: 53.8%)\n- ❌ Create your own preprocessing pipeline\n\n### What This Dataset Provides\n\n✅ **Pre-made splits** (70/15/15) saving hours of work\n✅ **Patient-level stratification** preventing data leakage\n✅ **Disease-balanced splits** maintaining distributions\n✅ **Computed class weights** ready for loss functions\n✅ **Preprocessing config** for reproducible pipelines\n✅ **CSV format** compatible with Keras, PyTorch, TensorFlow\n\n## Quick Start\n\n```python\nimport pandas as pd\n\n# Load ready-to-use splits\ntrain_df = pd.read_csv('/kaggle/input/nih-chest-xray-splits/train_split.csv')\nval_df = pd.read_csv('/kaggle/input/nih-chest-xray-splits/val_split.csv')\ntest_df = pd.read_csv('/kaggle/input/nih-chest-xray-splits/test_split.csv')\n\n# Link to base NIH images\ntrain_df['path'] = train_df['Image Index'].apply(\n    lambda x: f'/kaggle/input/nih-chest-xrays/images/{x}'\n)\n\n# Start training immediately!\n```\n\n## Dataset Composition\n\n| Split | Images | Purpose |\n|-------|--------|----------|\n| Train | 78,831 (70%) | Model training |\n| Val | 16,383 (15%) | Hyperparameter tuning |\n| Test | 16,890 (15%) | Final evaluation |\n\n**Total:** 112,104 images across 30,805 patients\n\n## Files\n\n- `train_split.csv`, `val_split.csv`, `test_split.csv` - Multi-label annotations for 14 diseases\n- `preprocessing_config.json` - Disease classes, split ratios, normalization params\n- `class_weights.json` - Per-disease weights (Hernia: 258x, Infiltration: 0.55x, etc.)\n- `README.md` - TensorFlow/PyTorch examples, methodology, citations\n\n## Disease Classes (14)\n\nAtelectasis, Cardiomegaly, Consolidation, Edema, Effusion, Emphysema, Fibrosis, Hernia, Infiltration, Mass, Nodule, Pleural_Thickening, Pneumonia, Pneumothorax\n\n## Use Cases\n\n- **Multi-label disease classification** (images can have multiple diseases)\n- **Transfer learning** with ResNet, DenseNet, EfficientNet\n- **Class imbalance research** (includes computed weights)\n- **Medical imaging benchmarking** (reproducible splits)\n\n## Compatibility\n\n✅ TensorFlow/Keras `ImageDataGenerator`\n✅ PyTorch `Dataset` and `DataLoader`\n✅ scikit-learn pipelines\n✅ Kaggle, Colab, Local environments\n\n## Not Included\n\n⚠️ **Images:** Use with base [NIH Chest X-Rays dataset](https://www.kaggle.com/datasets/nih-chest-xrays/data) (112K images, ~47 GB)\n⚠️ **Expert labels:** This uses original NLP-extracted labels. For expert-validated labels, see NIH's separate release\n\n## Citation\n\nWang et al., \"ChestX-ray8: Hospital-scale Chest X-ray Database\", IEEE CVPR 2017"
+}

@@ -164,6 +164,45 @@ data/processed/*.hdf5
 !data/processed/*.json
 
 # ============================================================================
+# Machine Learning Models & Artifacts (LARGE FILES - Do not commit!)
+# ============================================================================
+# Trained model files (typically 100MB - 1GB+)
+models/saved_models/*.keras
+models/saved_models/*.h5
+models/saved_models/*.hdf5
+models/saved_models/*.pb
+models/saved_models/*.pt
+models/saved_models/*.pth
+models/saved_models/*.ckpt
+models/saved_models/*.weights
+
+# Model checkpoints during training
+models/saved_models/checkpoints/
+models/saved_models/logs/
+
+# Kaggle downloaded outputs (contains 308MB model file)
+outputs/kaggle_cloud_training/
+
+# Allow model metadata and small config files
+!models/saved_models/*.json
+!models/saved_models/*.yaml
+!models/saved_models/*.yml
+!models/saved_models/*.txt
+!models/saved_models/README.md
+
+# ============================================================================
+# MLflow Experiment Tracking (Local artifacts - Do not commit!)
+# ============================================================================
+# MLflow tracking data and artifacts
+mlruns/
+mlflow/mlflow.db
+mlflow/.mlflow_server.pid
+mlflow/artifacts/
+
+# Allow MLflow configuration
+!mlflow/README.md
+
+# ============================================================================
 # Legacy / Deprecated (kept for reference, may remove later)
 # ============================================================================
 # Old core dumps and debug files
@@ -173,3 +212,11 @@ core.python*
 
 # Cloudinary (legacy from template)
 cloudinary_python.txt
+
+# ============================================================================
+# Jupytext (Paired Notebooks)
+# ============================================================================
+# NOTE: We track BOTH .ipynb and .py files for jupytext-paired notebooks
+# - .py files: Clean code for editing and version control
+# - .ipynb files: Execution outputs for human readability
+# Jupyter notebook checkpoints already excluded above (.ipynb_checkpoints/)

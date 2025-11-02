@@ -9,6 +9,7 @@
     ],
     // Load .env file for environment variables
     "python.envFile": "${workspaceFolder}/.env",
+    "python.terminal.useEnvFile": true,
     "python.terminal.executeInFileDir": false,
     "python.terminal.activateEnvInCurrentTerminal": true,
     // Jupyter notebook configuration

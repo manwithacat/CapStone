@@ -3,10 +3,13 @@
 
 PY ?= python
 
-.PHONY: help install lint format typecheck test test-fast test-notebooks pre-commit app clean
+.PHONY: help install lint format typecheck test test-fast test-notebooks pre-commit app clean \
+        mlflow-start mlflow-stop mlflow-ui mlflow-test mlflow-compare mlflow-clean
 
 help:
 	@echo "Usage:"
+	@echo ""
+	@echo "Development:"
 	@echo "  make install       - install dev dependencies and project package"
 	@echo "  make lint          - run Ruff linter"
 	@echo "  make format        - run Black formatter"
@@ -15,8 +18,18 @@ help:
 	@echo "  make test-fast     - run only fast notebook tests"
 	@echo "  make test-notebooks - prepare notebooks for testing"
 	@echo "  make pre-commit    - run lint and format checks"
-	@echo "  make app           - run the Streamlit dashboard locally"
 	@echo "  make clean         - remove caches and temp files"
+	@echo ""
+	@echo "Application:"
+	@echo "  make app           - run the Streamlit dashboard locally"
+	@echo ""
+	@echo "MLflow Experiment Tracking:"
+	@echo "  make mlflow-start  - start MLflow UI server (http://localhost:5001)"
+	@echo "  make mlflow-stop   - stop MLflow UI server"
+	@echo "  make mlflow-ui     - open MLflow UI in browser"
+	@echo "  make mlflow-test   - run MLflow tracking test"
+	@echo "  make mlflow-compare - compare experiments (top 5 runs)"
+	@echo "  make mlflow-clean  - clean MLflow experiment data (WARNING: deletes all!)"
 
 install:
 	@echo "Installing development dependencies..."
@@ -91,3 +104,63 @@ clean:
 	@find . -name ".ruff_cache" -type d -prune -exec rm -rf {} +
 	@find . -name ".pytest_cache" -type d -prune -exec rm -rf {} +
 	@echo "✅ Cleaned up cache files"
+
+# ============================================================================
+# MLflow Experiment Tracking Commands
+# ============================================================================
+
+mlflow-start:
+	@echo "🚀 Starting MLflow UI server..."
+	@echo ""
+	@if lsof -Pi :5001 -sTCP:LISTEN -t >/dev/null 2>&1; then \
+		echo "⚠️  MLflow is already running on port 5001"; \
+		echo "   Access at: http://localhost:5001"; \
+	else \
+		./scripts/mlflow_start.sh & \
+		sleep 3; \
+		if curl -s http://localhost:5001 >/dev/null 2>&1; then \
+			echo "✅ MLflow UI started successfully!"; \
+			echo "   Access at: http://localhost:5001"; \
+		else \
+			echo "❌ Failed to start MLflow server"; \
+			echo "   Try manually: ./scripts/mlflow_start.sh"; \
+		fi; \
+	fi
+
+mlflow-stop:
+	@echo "🛑 Stopping MLflow server..."
+	@./scripts/mlflow_stop.sh
+
+mlflow-ui:
+	@echo "📊 Opening MLflow UI in browser..."
+	@if lsof -Pi :5001 -sTCP:LISTEN -t >/dev/null 2>&1; then \
+		open http://localhost:5001 || xdg-open http://localhost:5001 || echo "Open manually: http://localhost:5001"; \
+	else \
+		echo "⚠️  MLflow server is not running"; \
+		echo "   Start it with: make mlflow-start"; \
+	fi
+
+mlflow-test:
+	@echo "🧪 Testing MLflow tracking..."
+	@echo ""
+	@$(PY) test_mlflow_simple.py
+	@echo ""
+	@echo "✨ View results: make mlflow-ui"
+
+mlflow-compare:
+	@echo "📊 Comparing experiments..."
+	@echo ""
+	@if [ -d mlruns ]; then \
+		$(PY) scripts/mlflow_compare.py --experiment cnn-custom --top 5 2>/dev/null || \
+		echo "No experiments found yet. Track some experiments first!"; \
+	else \
+		echo "No MLflow data found. Run some experiments first."; \
+	fi
+
+mlflow-clean:
+	@echo "⚠️  WARNING: This will delete ALL MLflow experiment data!"
+	@echo "Press Ctrl+C to cancel, or Enter to continue..."
+	@read confirmation
+	@rm -rf mlruns/ mlflow/mlflow.db mlflow/.mlflow_server.pid
+	@echo "✅ MLflow data cleaned"
+	@echo "   Run 'make mlflow-test' to create new test data"

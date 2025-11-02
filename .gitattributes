@@ -1,0 +1,46 @@
+# Git LFS Configuration (Large File Storage)
+# ============================================
+#
+# Git LFS is OPTIONAL for this project. Large model files are excluded
+# via .gitignore by default. Only enable LFS if you need to track models in git.
+#
+# To enable Git LFS:
+# 1. Install: brew install git-lfs (macOS) or apt-get install git-lfs (Linux)
+# 2. Initialize: git lfs install
+# 3. Track files: git lfs track "*.keras"
+# 4. Commit: git add .gitattributes && git commit -m "Enable Git LFS"
+#
+# Note: GitHub LFS has usage limits:
+# - Free: 1GB storage, 1GB bandwidth/month
+# - Pro: 50GB storage, 50GB bandwidth/month
+#
+# For this project, we recommend NOT using LFS and instead:
+# - Store models locally only (excluded via .gitignore)
+# - Download from Kaggle when needed
+# - Share via Kaggle Datasets or external storage
+
+# Machine Learning Model Files (if LFS is enabled)
+# *.keras filter=lfs diff=lfs merge=lfs -text
+# *.h5 filter=lfs diff=lfs merge=lfs -text
+# *.hdf5 filter=lfs diff=lfs merge=lfs -text
+# *.pb filter=lfs diff=lfs merge=lfs -text
+# *.pt filter=lfs diff=lfs merge=lfs -text
+# *.pth filter=lfs diff=lfs merge=lfs -text
+# *.ckpt filter=lfs diff=lfs merge=lfs -text
+# *.weights filter=lfs diff=lfs merge=lfs -text
+
+# Jupyter Notebooks - Prevent binary output from bloating repo
+*.ipynb diff=jupyternotebook merge=jupyternotebook
+
+# Text files should always use LF line endings (Unix-style)
+*.py text eol=lf
+*.sh text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.csv text eol=lf
+
+# Ensure shell scripts are executable
+*.sh text eol=lf exec
