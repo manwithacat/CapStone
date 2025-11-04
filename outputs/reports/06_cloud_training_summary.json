@@ -1,0 +1,32 @@
+{
+  "training_info": {
+    "epochs_completed": 15,
+    "hardware": "Kaggle P100 GPU",
+    "timeout": "12 hours (43,200 seconds)",
+    "training_images": 78566
+  },
+  "best_performance": {
+    "best_val_auc": 0.7921926379203796,
+    "best_val_auc_epoch": 14,
+    "best_val_loss": 0.3134457767009735,
+    "best_val_loss_epoch": 14
+  },
+  "final_epoch": {
+    "train_loss": 0.3122965097427368,
+    "val_loss": 0.3134457767009735,
+    "train_auc": 0.7819152474403381,
+    "val_auc": 0.7921926379203796,
+    "train_accuracy": 0.1048699095845222,
+    "val_accuracy": 0.0989440307021141
+  },
+  "improvements": {
+    "val_auc_improvement_pct": 6.327223173386072,
+    "val_auc_best_improvement_pct": 6.327223173386072,
+    "train_loss_reduction_pct": 34.29428950403561
+  },
+  "generalization": {
+    "train_val_auc_gap": -0.010277390480041504,
+    "train_val_loss_gap": -0.0011492669582366943,
+    "overfitting_status": "minimal"
+  }
+}
