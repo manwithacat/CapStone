@@ -1,0 +1,22 @@
+{
+  "CONFIG": {
+    "img_height": 224,
+    "img_width": 224,
+    "channels": 3,
+    "batch_size": 64,
+    "epochs": 10,
+    "learning_rate": 0.0001,
+    "filters": [64, 128, 256],
+    "dense_units": 512,
+    "dropout_rate": 0.5,
+    "l2_reg": 0.0001,
+    "early_stopping_patience": 5,
+    "reduce_lr_patience": 3,
+    "num_classes": 14,
+    "random_state": 42
+  },
+  "WARM_START": true,
+  "PREVIOUS_MODEL_PATH": "/kaggle/input/cnn-v7-model/cnn_optimized_best.keras",
+  "RUN_NAME": "v10-conservative-finetune",
+  "USE_SAMPLE": false
+}

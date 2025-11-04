@@ -1,0 +1,6 @@
+{
+  "MODELS_TO_TRAIN": ["resnet50", "densenet121", "efficientnetb3"],
+  "RUN_NAME": "kaggle_07_full_training",
+  "USE_MLFLOW": false,
+  "RETRAIN_MODELS": true
+}

@@ -1,0 +1,4 @@
+# MLflow Configuration
+# SQLite backend for better performance and querying
+MLFLOW_TRACKING_URI=sqlite:///$(pwd)/mlflow.db
+MLFLOW_ARTIFACT_ROOT=./mlruns

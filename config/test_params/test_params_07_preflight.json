@@ -1,0 +1,6 @@
+{
+  "MODELS_TO_TRAIN": ["densenet121"],
+  "RUN_NAME": "preflight_07_local",
+  "USE_MLFLOW": true,
+  "RETRAIN_MODELS": true
+}

@@ -1,0 +1,17 @@
+{
+  "id": "jm00e4/nb07-transfer-learning-v2",
+  "title": "NB07 Transfer Learning v2 v10 - ImageNet Weights",
+  "code_file": "notebook.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": false,
+  "dataset_sources": [
+    "nih-chest-xrays/data",
+    "manwithacat/nih-chest-xray-splits",
+    "manwithacat/imagenet-pretrained-weights"
+  ],
+  "competition_sources": [],
+  "kernel_sources": []
+}

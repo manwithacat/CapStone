@@ -1,0 +1,6 @@
+{
+  "MODELS_TO_TRAIN": ["densenet121"],
+  "RUN_NAME": "quick_preflight_test",
+  "USE_MLFLOW": false,
+  "RETRAIN_MODELS": true
+}
