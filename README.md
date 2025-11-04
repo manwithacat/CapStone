@@ -449,12 +449,29 @@ CapStone/
 │       ├── 4_prediction.py         # Churn prediction page
 │       └── 5_insights.py           # Business insights page
 │
+├── kaggle/
+│   ├── kernels/                    # Kaggle kernel configurations
+│   ├── datasets/                   # Kaggle dataset uploads
+│   ├── results/                    # Downloaded Kaggle outputs
+│   ├── scripts/                    # Kaggle-specific scripts
+│   ├── config/                     # Test parameters and configs
+│   └── legacy/                     # Archived legacy files
+│
+├── colab/
+│   └── *.ipynb                     # Google Colab notebooks
+│
 ├── models/
 │   └── saved_models/               # Trained model artifacts
 │
 ├── docs/
+│   ├── README.md                   # **📚 Complete Documentation Index (34 guides)**
 │   ├── Assessment_Handbook.md      # Project requirements
-│   └── development_log.md          # Development progress notes
+│   ├── PLATFORM_ORGANIZATION.md    # Directory structure & platform separation
+│   ├── NBPUSH_CLI.md               # CLI tool for pushing notebooks to cloud GPUs
+│   ├── KAGGLE_GUIDE.md             # Complete Kaggle workflow
+│   ├── COLAB_GUIDE.md              # Complete Colab workflow
+│   ├── MLFLOW_QUICKSTART.md        # Experiment tracking quick start
+│   └── ... (31 more guides - see docs/README.md for full index)
 │
 ├── tests/
 │   └── test_data_processing.py     # Unit tests
