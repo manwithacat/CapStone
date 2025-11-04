@@ -139,6 +139,19 @@ temp/
 # Setup tracking files (local development only)
 PROJECT_SETUP_COMPLETE.md
 
+# Test parameter files in root (should be in kaggle/config/test_params/)
+/test_params_*.json
+
+# Mistaken directories from shell variable expansion errors
+$(pwd)/
+
+# Archive directories
+outputs/reports/archive/
+
+# Timestamped training output files (archive these periodically)
+outputs/reports/*_2025*.csv
+outputs/reports/*_2024*.csv
+
 # Data files - Exclude large image datasets but include metadata CSV files
 # NIH Chest X-Ray images (112K images, ~42GB total)
 data/raw/images*/
@@ -216,7 +229,39 @@ cloudinary_python.txt
 # ============================================================================
 # Jupytext (Paired Notebooks)
 # ============================================================================
-# NOTE: We track BOTH .ipynb and .py files for jupytext-paired notebooks
-# - .py files: Clean code for editing and version control
-# - .ipynb files: Execution outputs for human readability
+# Exclude jupytext-generated .py files to reduce clutter
+# - Paired .py files stored in .jupytext/ subdirectory
+# - Claude can still access them for editing
+# - Only track .ipynb files (which contain outputs for human readability)
+# - Jupytext auto-syncs .py ↔ .ipynb on read/write
+.jupytext/
+jupyter_notebooks/**/*.py
+
 # Jupyter notebook checkpoints already excluded above (.ipynb_checkpoints/)
+
+# Colab OAuth credentials
+.colab/
+
+# ============================================================================
+# Platform-Specific Directories (New Organization)
+# ============================================================================
+# Kaggle results (downloaded models and outputs)
+kaggle/results/*/
+!kaggle/results/*/.gitkeep
+
+# Kaggle datasets (large files)
+kaggle/datasets/imagenet-weights/*.h5
+kaggle/datasets/data-splits/*.csv
+
+# Pretrained weights (large files)
+models/pretrained_weights/*.h5
+models/pretrained_weights/*.pb
+
+# Colab ephemeral outputs
+colab/outputs/
+
+# Legacy directories (archived in kaggle/legacy/)
+kaggle/legacy/
+
+# nbpush activity logs (LLM-optimized, keep in repo)
+# .logs/ intentionally not ignored - these logs are for Claude to track activity
