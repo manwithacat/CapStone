@@ -193,8 +193,9 @@ models/saved_models/*.weights
 models/saved_models/checkpoints/
 models/saved_models/logs/
 
-# Kaggle downloaded outputs (contains 308MB model file)
+# Kaggle downloaded outputs (contains large model files)
 outputs/kaggle_cloud_training/
+models/saved_models_kaggle/*.keras
 
 # Allow model metadata and small config files
 !models/saved_models/*.json
