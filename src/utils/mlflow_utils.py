@@ -436,6 +436,285 @@ def register_best_model(
     return result
 
 
+def log_model_version(
+    version: str,
+    parent_version: Optional[str] = None,
+    parent_run_id: Optional[str] = None,
+    changes: str = "",
+    warm_start: bool = False,
+    best_epoch: Optional[int] = None
+):
+    """
+    Log model version metadata to current MLflow run.
+
+    Args:
+        version: Model version identifier (e.g., "v11", "v1-test")
+        parent_version: Version of parent model if warm-start (e.g., "v7")
+        parent_run_id: MLflow run_id of parent model (optional)
+        changes: Description of architecture/parameter changes
+        warm_start: Whether this run loaded a pre-trained model
+        best_epoch: Epoch number where best validation metric was achieved
+
+    Example:
+        >>> with mlflow.start_run(run_name="v11-training"):
+        >>>     # ... training code ...
+        >>>     log_model_version(
+        >>>         version="v11",
+        >>>         parent_version="v7",
+        >>>         changes="Increased filters to 128, added batch norm",
+        >>>         warm_start=True
+        >>>     )
+    """
+    # Set version tag
+    mlflow.set_tag("model_version", version)
+
+    # Set parent lineage if warm-start
+    if parent_version:
+        mlflow.set_tag("parent_model_version", parent_version)
+        lineage = f"{parent_version} → {version}"
+        mlflow.set_tag("model_lineage", lineage)
+
+    if parent_run_id:
+        mlflow.set_tag("parent_model_run_id", parent_run_id)
+
+    # Log architecture changes
+    if changes:
+        mlflow.set_tag("architecture_changes", changes)
+
+    # Log warm-start flag as param (more queryable)
+    if warm_start:
+        mlflow.log_param("warm_start", "true")
+
+    # Log best epoch
+    if best_epoch is not None:
+        mlflow.set_tag("best_epoch", str(best_epoch))
+
+    print(f"✅ Logged model version: {version}")
+    if parent_version:
+        print(f"   Parent: {parent_version}")
+
+
+def log_dataset_info(
+    train_size: int,
+    val_size: int,
+    test_size: int,
+    dataset_name: str = "NIH-Chest-Xrays-112k",
+    preprocessing: Optional[Dict[str, Any]] = None
+):
+    """
+    Log dataset metadata to current MLflow run.
+
+    Args:
+        train_size: Number of training images
+        val_size: Number of validation images
+        test_size: Number of test images
+        dataset_name: Name of the dataset
+        preprocessing: Dictionary of preprocessing parameters
+
+    Example:
+        >>> with mlflow.start_run():
+        >>>     log_dataset_info(
+        >>>         train_size=78566,
+        >>>         val_size=17063,
+        >>>         test_size=16491,
+        >>>         preprocessing={
+        >>>             "img_height": 224,
+        >>>             "augmentation": True
+        >>>         }
+        >>>     )
+    """
+    # Set dataset tags
+    mlflow.set_tag("dataset_name", dataset_name)
+    mlflow.set_tag("dataset_train_size", str(train_size))
+    mlflow.set_tag("dataset_val_size", str(val_size))
+    mlflow.set_tag("dataset_test_size", str(test_size))
+    mlflow.set_tag("dataset_total_size", str(train_size + val_size + test_size))
+
+    # Log split ratios
+    total = train_size + val_size + test_size
+    train_ratio = train_size / total
+    val_ratio = val_size / total
+    test_ratio = test_size / total
+    mlflow.set_tag("dataset_split_ratio", f"{train_ratio:.2%}/{val_ratio:.2%}/{test_ratio:.2%}")
+
+    # Log preprocessing params
+    if preprocessing:
+        for key, value in preprocessing.items():
+            mlflow.log_param(f"data_{key}", value)
+
+    print(f"✅ Logged dataset info: {train_size:,} train, {val_size:,} val, {test_size:,} test")
+
+
+def log_training_time(hours: float):
+    """
+    Log actual training time in hours.
+
+    This is separate from MLflow's automatic duration tracking, which includes
+    import/setup time. Use this to record actual model training time.
+
+    Args:
+        hours: Training time in hours (can be fractional)
+    """
+    mlflow.log_metric("training_time_hours", hours)
+
+    # Also log in different units for convenience
+    mlflow.log_metric("training_time_minutes", hours * 60)
+
+    if hours >= 1:
+        print(f"✅ Logged training time: {hours:.2f} hours")
+    else:
+        print(f"✅ Logged training time: {hours*60:.1f} minutes")
+
+
+def get_best_run(
+    experiment_name: str,
+    metric: str = "val_auc",
+    ascending: bool = False
+) -> Optional[str]:
+    """
+    Get the run_id of the best run in an experiment.
+
+    Useful for finding parent models for warm-start training.
+
+    Args:
+        experiment_name: Name of the MLflow experiment
+        metric: Metric to use for ranking (default: "val_auc")
+        ascending: If True, lower is better (default: False, higher is better)
+
+    Returns:
+        run_id of best run, or None if no runs found
+
+    Example:
+        >>> best_run_id = get_best_run("cnn-custom", "val_auc")
+        >>> print(f"Best run: {best_run_id}")
+    """
+    from mlflow.tracking import MlflowClient
+
+    client = MlflowClient()
+
+    # Get experiment
+    experiment = client.get_experiment_by_name(experiment_name)
+    if not experiment:
+        print(f"❌ Experiment '{experiment_name}' not found")
+        return None
+
+    # Search runs
+    order = "ASC" if ascending else "DESC"
+    runs = client.search_runs(
+        experiment_ids=[experiment.experiment_id],
+        order_by=[f"metrics.{metric} {order}"],
+        max_results=1
+    )
+
+    if not runs:
+        print(f"❌ No runs found in experiment '{experiment_name}'")
+        return None
+
+    best_run = runs[0]
+    best_value = best_run.data.metrics.get(metric)
+    run_name = best_run.data.tags.get('mlflow.runName', 'unnamed')
+
+    print(f"✅ Best run: {run_name}")
+    print(f"   {metric}: {best_value:.4f}")
+    print(f"   run_id: {best_run.info.run_id}")
+
+    return best_run.info.run_id
+
+
+def query_runs_by_version(version: str) -> list:
+    """
+    Find all runs with a specific model version.
+
+    Args:
+        version: Model version to search for (e.g., "v7", "v11")
+
+    Returns:
+        List of MLflow Run objects
+
+    Example:
+        >>> runs = query_runs_by_version("v7")
+        >>> for run in runs:
+        >>>     print(run.data.tags.get('mlflow.runName'))
+    """
+    from mlflow.tracking import MlflowClient
+
+    client = MlflowClient()
+
+    # Search all runs with the version tag
+    runs = client.search_runs(
+        experiment_ids=[],  # Search all experiments
+        filter_string=f"tags.model_version = '{version}'"
+    )
+
+    print(f"Found {len(runs)} runs with version '{version}'")
+    return runs
+
+
+def compare_model_lineage(version1: str, version2: str):
+    """
+    Compare two model versions and their metadata.
+
+    Useful for understanding what changed between versions.
+
+    Args:
+        version1: First model version (e.g., "v7")
+        version2: Second model version (e.g., "v10")
+
+    Example:
+        >>> compare_model_lineage("v7", "v10")
+    """
+    from mlflow.tracking import MlflowClient
+
+    client = MlflowClient()
+
+    # Get runs for both versions
+    runs1 = query_runs_by_version(version1)
+    runs2 = query_runs_by_version(version2)
+
+    if not runs1 or not runs2:
+        print("❌ One or both versions not found")
+        return
+
+    run1 = runs1[0]
+    run2 = runs2[0]
+
+    print("\n" + "=" * 80)
+    print(f"Comparing {version1} vs {version2}")
+    print("=" * 80)
+
+    # Compare architecture changes
+    changes1 = run1.data.tags.get('architecture_changes', 'N/A')
+    changes2 = run2.data.tags.get('architecture_changes', 'N/A')
+
+    print(f"\n{version1} changes:")
+    print(f"  {changes1}")
+    print(f"\n{version2} changes:")
+    print(f"  {changes2}")
+
+    # Compare key metrics
+    print("\nMetrics comparison:")
+    metrics_to_compare = ['val_auc', 'val_loss', 'val_precision', 'val_recall']
+
+    for metric in metrics_to_compare:
+        val1 = run1.data.metrics.get(metric, 0)
+        val2 = run2.data.metrics.get(metric, 0)
+        diff = val2 - val1
+        emoji = "📈" if diff > 0 else "📉" if diff < 0 else "➡️"
+        print(f"  {metric:<20} {val1:.4f} → {val2:.4f} ({diff:+.4f}) {emoji}")
+
+    # Compare parameters
+    print("\nParameter changes:")
+    all_params = set(run1.data.params.keys()) | set(run2.data.params.keys())
+
+    for param in sorted(all_params):
+        val1 = run1.data.params.get(param, 'N/A')
+        val2 = run2.data.params.get(param, 'N/A')
+        if val1 != val2:
+            print(f"  {param:<25} {val1} → {val2}")
+
+    print("=" * 80)
+
+
 # Example usage
 if __name__ == "__main__":
     # Example: Track a simple experiment

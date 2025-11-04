@@ -9,22 +9,27 @@
 
 set -e
 
-PORT=${1:-5001}
-BACKEND_STORE="./mlruns"
-ARTIFACT_ROOT="./mlruns"
+# Detect project root (script is in PROJECT_ROOT/scripts/)
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
-echo "🚀 Starting MLflow Tracking Server"
-echo "=================================="
+PORT=${1:-5001}
+BACKEND_STORE="sqlite:///$PROJECT_ROOT/mlflow.db"
+ARTIFACT_ROOT="$PROJECT_ROOT/mlruns"
+
+echo "🚀 Starting MLflow Tracking Server (SQLite Backend)"
+echo "======================================================"
 echo ""
 echo "Configuration:"
+echo "  Project Root: $PROJECT_ROOT"
 echo "  Port: $PORT"
 echo "  Backend Store: $BACKEND_STORE"
 echo "  Artifact Root: $ARTIFACT_ROOT"
 echo ""
 
 # Create directories if they don't exist
-mkdir -p mlflow/artifacts
-mkdir -p mlruns
+mkdir -p "$PROJECT_ROOT/mlflow/artifacts"
+mkdir -p "$PROJECT_ROOT/mlruns"
 
 # Check if port is already in use
 if lsof -Pi :$PORT -sTCP:LISTEN -t >/dev/null ; then
@@ -74,8 +79,8 @@ if ps -p $MLFLOW_PID > /dev/null; then
     echo ""
 
     # Save PID to file
-    echo $MLFLOW_PID > mlflow/.mlflow_server.pid
-    echo "PID saved to: mlflow/.mlflow_server.pid"
+    echo $MLFLOW_PID > "$PROJECT_ROOT/mlflow/.mlflow_server.pid"
+    echo "PID saved to: $PROJECT_ROOT/mlflow/.mlflow_server.pid"
 
     # Wait for user interrupt
     wait $MLFLOW_PID

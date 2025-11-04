@@ -13,11 +13,54 @@ Example:
 
 import argparse
 import json
+import sqlite3
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import mlflow
 import pandas as pd
+
+
+def generate_run_description(run_name, config, final_metrics, history_df):
+    """
+    Generate a concise description for the run.
+
+    Args:
+        run_name: Run identifier
+        config: Training configuration dict
+        final_metrics: Final metrics dict
+        history_df: Training history DataFrame
+
+    Returns:
+        str: Description text for the run
+    """
+    parts = []
+
+    # Architecture summary
+    filters = config.get('filters', [])
+    parts.append(f"Architecture: {filters} filters")
+    parts.append(f"{config.get('dense_units', 512)} dense")
+    parts.append(f"{config.get('dropout_rate', 0.5)} dropout")
+    parts.append(f"{config.get('l2_reg', 0.0001)} L2")
+
+    # Training config
+    parts.append(f"Batch: {config.get('batch_size', 64)}")
+    parts.append(f"LR: {config.get('learning_rate', 0.001)}")
+
+    # Best metrics from history
+    if 'val_auc' in history_df.columns:
+        best_idx = history_df['val_auc'].idxmax()
+        best_auc = history_df.loc[best_idx, 'val_auc']
+        parts.append(f"Best val_auc: {best_auc:.4f} @ epoch {best_idx}")
+    elif 'val_auc' in final_metrics:
+        parts.append(f"Final val_auc: {final_metrics['val_auc']:.4f}")
+
+    # Warm start info
+    if "warm" in run_name.lower() or "continue" in run_name.lower():
+        parts.append("(Warm-start)")
+
+    return " | ".join(parts)
 
 
 def create_mlflow_run_from_csv(csv_path, json_path, experiment_name="cnn-custom"):
@@ -46,12 +89,26 @@ def create_mlflow_run_from_csv(csv_path, json_path, experiment_name="cnn-custom"
     epochs_completed = summary.get('epochs_completed', len(history_df))
     time_per_epoch = summary.get('time_per_epoch_minutes', 0)
 
+    # Set tracking URI to SQLite backend
+    tracking_uri = "sqlite:///mlflow.db"
+    mlflow.set_tracking_uri(tracking_uri)
+    print(f"🗄️  Using tracking URI: {tracking_uri}")
+
     # Set experiment
     mlflow.set_experiment(experiment_name)
     print(f"\n🔬 Creating MLflow run in experiment: {experiment_name}")
 
-    # Create run name
-    run_name = f"kaggle-imported-{Path(csv_path).stem}"
+    # Extract clean run name from CSV filename
+    # e.g., "v11-continue-training_training_history.csv" -> "v11-continue-training"
+    csv_stem = Path(csv_path).stem
+    if "_training_history" in csv_stem:
+        run_name = csv_stem.replace("_training_history", "")
+    elif csv_stem.startswith("06c_optimized_training_history"):
+        run_name = "v7-baseline"  # Legacy naming
+    else:
+        run_name = csv_stem
+
+    print(f"   Run name: {run_name}")
 
     # Start MLflow run
     with mlflow.start_run(run_name=run_name) as run:
@@ -98,6 +155,8 @@ def create_mlflow_run_from_csv(csv_path, json_path, experiment_name="cnn-custom"
 
         # Add tags
         print(f"🏷️  Adding tags...")
+        import_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
         tags = {
             # MLflow standard tags
             'mlflow.source.type': 'NOTEBOOK',
@@ -109,6 +168,10 @@ def create_mlflow_run_from_csv(csv_path, json_path, experiment_name="cnn-custom"
             'environment': 'kaggle-p100-gpu',
             'execution_mode': 'cloud',
             'imported_from': 'csv',
+            'import_date': import_date,
+
+            # Run identification
+            'run_name': run_name,
 
             # Model metadata
             'framework': 'tensorflow',
@@ -124,6 +187,11 @@ def create_mlflow_run_from_csv(csv_path, json_path, experiment_name="cnn-custom"
             tags['epochs_requested'] = str(config['epochs'])
 
         mlflow.set_tags(tags)
+
+        # Generate and set run description
+        description = generate_run_description(run_name, config, final_metrics, history_df)
+        mlflow.set_tag("mlflow.note.content", description)
+        print(f"📝 Description: {description[:80]}...")
 
         # Log artifacts (CSV and JSON)
         print(f"📎 Logging artifacts...")
@@ -146,6 +214,38 @@ def create_mlflow_run_from_csv(csv_path, json_path, experiment_name="cnn-custom"
         print(f"   Run ID: {run.info.run_id}")
         print(f"   Run Name: {run_name}")
         print(f"   Experiment: {experiment_name}")
+
+        # Update run duration to match actual training time
+        if training_time > 0:
+            print(f"\n⏱️  Updating run duration...")
+            db_path = "mlflow.db"
+            try:
+                conn = sqlite3.connect(db_path)
+                cursor = conn.cursor()
+
+                # Get run's start_time
+                cursor.execute(
+                    "SELECT start_time FROM runs WHERE run_uuid = ?",
+                    (run.info.run_id,)
+                )
+                start_time = cursor.fetchone()[0]
+
+                # Calculate new end_time based on training_time_hours
+                training_ms = int(training_time * 3600 * 1000)
+                new_end_time = start_time + training_ms
+
+                # Update end_time
+                cursor.execute(
+                    "UPDATE runs SET end_time = ? WHERE run_uuid = ?",
+                    (new_end_time, run.info.run_id)
+                )
+                conn.commit()
+                conn.close()
+
+                print(f"   Duration set to {training_time:.2f} hours")
+            except Exception as e:
+                print(f"   ⚠️  Could not update duration: {e}")
+
         print(f"\n📊 Logged:")
         print(f"   - {len(config)} parameters")
         print(f"   - {len(final_metrics)} final metrics")

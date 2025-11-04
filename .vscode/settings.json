@@ -22,5 +22,11 @@
     // Notebook output configuration
     "notebook.output.textLineLimit": 500,
     // Additional Python settings
-    "python.terminal.activateEnvironment": true
+    "python.terminal.activateEnvironment": true,
+    // Hide jupytext paired files from file explorer
+    "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/.*": true
+    }
 }
