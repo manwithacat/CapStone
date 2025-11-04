@@ -6,7 +6,7 @@ set -e
 echo "📦 Preparing data for Kaggle upload..."
 
 # Create staging directory
-STAGING_DIR="kaggle_upload"
+STAGING_DIR="kaggle/datasets/data-splits"
 rm -rf $STAGING_DIR
 mkdir -p $STAGING_DIR
 
