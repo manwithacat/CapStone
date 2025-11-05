@@ -338,8 +338,11 @@ start_time = time.time()
 total_images = 0
 
 # Get all subdirectories (images_001, images_002, etc.)
-blobs = storage_client.list_blobs(BUCKET_NAME, prefix=prefix, delimiter='/')
-subdirs = [p for p in blobs.prefixes if 'images_' in p]
+iterator = storage_client.list_blobs(BUCKET_NAME, prefix=prefix, delimiter='/')
+# Force iteration to populate prefixes
+_ = list(iterator)
+# Now get prefixes
+subdirs = [p for p in iterator.prefixes if 'images_' in p]
 
 print(f"✓ Found {len(subdirs)} image subdirectories")
 print()
