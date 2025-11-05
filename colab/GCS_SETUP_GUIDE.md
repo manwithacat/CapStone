@@ -29,13 +29,9 @@ chmod +x scripts/setup_gcs_medallion.sh
 
 This creates the medallion structure and uploads your data.
 
-### 2. Authentication Options
+### 2. Service Account Authentication
 
-Choose one:
-
-#### Option A: Service Account (Recommended)
-
-**Best for:** Production, automated workflows, no OAuth prompts
+**Setup (one-time):**
 
 1. Create service account in Google Cloud Console:
    ```
@@ -43,27 +39,19 @@ Choose one:
    ```
 
 2. Grant permissions:
-   - `Storage Object Admin` (for full read/write)
-   - OR `Storage Object Viewer` (for read-only)
+   - `Storage Object Admin` (for full read/write to GCS)
+   - OR `Storage Object Viewer` (for read-only access)
 
 3. Create JSON key:
    ```
    Actions > Manage Keys > Add Key > Create New Key > JSON
    ```
 
-4. Save as: `.colab/service-account-key.json` (gitignored)
+4. Save locally as: `.colab/service-account-key.json` (gitignored)
 
-5. **In Colab**: Upload this JSON file when prompted
-
-#### Option B: User OAuth (Quick Start)
-
-**Best for:** Interactive development, testing
-
-1. In Colab, authenticate with your Google account
-2. Enter your Google Cloud Project ID when prompted
-3. One-time OAuth consent screen
-
-**Note:** Your account needs `Storage Object Viewer` or `Storage Object Admin` IAM role.
+**In Colab:**
+- Upload this JSON file when prompted (each session)
+- Project ID will be auto-detected from the key
 
 ## Running the Notebook
 
@@ -90,29 +78,22 @@ Or manually:
 
 ### Step 3: Run Authentication Cell
 
-The notebook will ask for your auth method:
+When you run cell 2, you'll see:
 
-**Service Account:**
 ```
-Choose authentication method:
-  1. Service Account (JSON key)
-  2. User OAuth (Google account)
+🔐 GCS Service Account Authentication
+============================================================
 
-Enter 1 or 2: 1
-
-Upload your service account JSON key file
+📁 Upload your service account JSON key file
+   (Download from Google Cloud Console > IAM > Service Accounts)
 ```
 
-Upload your `.colab/service-account-key.json`
+Click "Choose Files" and upload your service account JSON key.
 
-**User OAuth:**
-```
-Enter 1 or 2: 2
-
-Enter your Google Cloud Project ID: your-project-id
-```
-
-Follow OAuth prompts to authenticate.
+The notebook will:
+- Auto-detect your Project ID from the key
+- Test connection to `gs://nih-xrays`
+- Show confirmation with project ID
 
 ### Step 4: Configure Training
 
@@ -142,11 +123,17 @@ MODELS_TO_TRAIN = ['resnet50', 'densenet121', 'efficientnetb3']
 - ~2-3 hours per model (with T4 GPU)
 - ~45-60 minutes per model (with A100 GPU)
 
-### Step 5: Run All Cells
+### Step 5: Run Training Cells
 
-Runtime > Run all
+Runtime > Run all (or run cells sequentially)
 
-Or run cells sequentially.
+The notebook will:
+1. Authenticate with GCS
+2. Download CSV manifests (7 MB)
+3. Build image path index (2-3 min for 112K images)
+4. Create data generators
+5. Train selected models
+6. Upload results back to GCS
 
 ## What the Notebook Does
 

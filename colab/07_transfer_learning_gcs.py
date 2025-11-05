@@ -32,86 +32,47 @@
 !nvidia-smi
 
 # %% [markdown]
-# ## 2. Setup GCS Authentication
+# ## 2. Setup GCS Authentication (Service Account)
 #
-# **Two options for authentication:**
-#
-# ### Option A: Service Account (Recommended for Production)
-# - Upload your service account JSON key
-# - No OAuth prompts
-# - Works in automated pipelines
-#
-# ### Option B: User OAuth (Quick Start)
-# - Uses your Google account
-# - One-time OAuth prompt
-# - Good for interactive development
+# **Upload your service account JSON key:**
+# 1. Download from Google Cloud Console > IAM > Service Accounts
+# 2. Upload using the file picker below
+# 3. Project ID will be auto-detected
 
 # %%
-from google.colab import auth, files
+from google.colab import files
 from google.cloud import storage
 import os
 from pathlib import Path
 import json
 
-# Detect if running in Colab
-try:
-    import google.colab
-    IN_COLAB = True
-except ImportError:
-    IN_COLAB = False
-
 BUCKET_NAME = 'nih-xrays'
 PROJECT_ID = None  # Auto-detected from credentials
 
-print("🔐 GCS Authentication Setup")
+print("🔐 GCS Service Account Authentication")
 print("=" * 60)
+print("\n📁 Upload your service account JSON key file")
+print("   (Download from Google Cloud Console > IAM > Service Accounts)")
+print()
 
-# Check for existing authentication
-auth_method = input("\nChoose authentication method:\n  1. Service Account (JSON key)\n  2. User OAuth (Google account)\n\nEnter 1 or 2: ").strip()
+uploaded = files.upload()
 
-if auth_method == '1':
-    # Service Account Authentication
-    print("\n📁 Upload your service account JSON key file")
-    print("   (Download from Google Cloud Console > IAM > Service Accounts)")
+if not uploaded:
+    raise ValueError("No file uploaded. Please upload service account JSON key.")
 
-    uploaded = files.upload()
+# Get the uploaded file name (should be .json)
+key_file = list(uploaded.keys())[0]
 
-    if not uploaded:
-        raise ValueError("No file uploaded. Please upload service account JSON key.")
+# Set environment variable for authentication
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = key_file
 
-    # Get the uploaded file name (should be .json)
-    key_file = list(uploaded.keys())[0]
+# Load project ID from key file
+with open(key_file, 'r') as f:
+    key_data = json.load(f)
+    PROJECT_ID = key_data.get('project_id')
 
-    # Set environment variable for authentication
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = key_file
-
-    # Load project ID from key file
-    with open(key_file, 'r') as f:
-        key_data = json.load(f)
-        PROJECT_ID = key_data.get('project_id')
-
-    print(f"✓ Service account authenticated")
-    print(f"✓ Project ID: {PROJECT_ID}")
-
-elif auth_method == '2':
-    # User OAuth Authentication
-    print("\n🔓 Authenticating with your Google account...")
-    print("   This will open an OAuth consent screen.")
-
-    if IN_COLAB:
-        auth.authenticate_user()
-    else:
-        # For local testing, use application default credentials
-        os.system('gcloud auth application-default login')
-
-    # Project ID should be set manually for OAuth
-    PROJECT_ID = input("\nEnter your Google Cloud Project ID: ").strip()
-
-    print(f"✓ User OAuth authenticated")
-    print(f"✓ Project ID: {PROJECT_ID}")
-
-else:
-    raise ValueError("Invalid choice. Please enter 1 or 2.")
+print(f"\n✓ Service account authenticated")
+print(f"✓ Project ID: {PROJECT_ID}")
 
 # Create storage client
 try:
