@@ -924,39 +924,114 @@ def train_transfer_learning_model(model_class, model_name, train_dataset, val_da
 print("✓ Training function defined")
 
 # %% [markdown]
-# ## 14. Train All Models
+# ## 14. Train All Models (Parallel Execution)
+#
+# **Parallel Training on A100:**
+# - Trains all 3 models simultaneously
+# - Uses ~50-60 GB GPU RAM (still leaves 20-30 GB free)
+# - Expected time: ~30-40 minutes (vs 90-120 minutes sequential)
+# - 2.5-3x faster than sequential training
 
 # %%
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
+
+# Training mode selection
+PARALLEL_TRAINING = True  # Set to False for sequential training
 
 trained_models = {}
 training_histories = {}
+model_timings = {}
 
-start_time = time.time()
+print("\n" + "=" * 60)
+if PARALLEL_TRAINING:
+    print("🚀 PARALLEL TRAINING MODE")
+    print("=" * 60)
+    print(f"\nTraining all {len(MODELS_TO_TRAIN)} models simultaneously")
+    print(f"Expected GPU RAM: ~50-60 GB / 80 GB")
+    print(f"Expected time: ~30-40 minutes")
+else:
+    print("📝 SEQUENTIAL TRAINING MODE")
+    print("=" * 60)
+    print(f"\nTraining {len(MODELS_TO_TRAIN)} models one by one")
+    print(f"Expected GPU RAM: ~17 GB / 80 GB per model")
+    print(f"Expected time: ~90-120 minutes")
 
-for model_name, model_class in [
+print()
+
+# Model configurations
+MODEL_CONFIGS = [
     ('ResNet50', ResNet50),
     ('DenseNet121', DenseNet121),
     ('EfficientNetB3', EfficientNetB3)
-]:
+]
+
+def train_model_wrapper(model_config):
+    """Wrapper function for parallel training"""
+    model_name, model_class = model_config
+    thread_name = threading.current_thread().name
+
+    print(f"\n[{thread_name}] 🚀 Starting {model_name}...")
     model_start = time.time()
 
-    model, history = train_transfer_learning_model(
-        model_class=model_class,
-        model_name=model_name,
-        train_dataset=train_dataset,
-        val_dataset=val_dataset,
-        config=CONFIG,
-        models_to_train=MODELS_TO_TRAIN,
-        run_name=RUN_NAME
-    )
-
-    if model is not None:
-        trained_models[model_name] = model
-        training_histories[model_name] = history
+    try:
+        model, history = train_transfer_learning_model(
+            model_class=model_class,
+            model_name=model_name,
+            train_dataset=train_dataset,
+            val_dataset=val_dataset,
+            config=CONFIG,
+            models_to_train=MODELS_TO_TRAIN,
+            run_name=RUN_NAME
+        )
 
         model_duration = time.time() - model_start
-        print(f"\n⏱️  {model_name} training time: {model_duration / 60:.1f} minutes")
+
+        if model is not None:
+            print(f"\n[{thread_name}] ✅ {model_name} complete in {model_duration / 60:.1f} minutes")
+            return model_name, model, history, model_duration
+        else:
+            print(f"\n[{thread_name}] ⏭️  {model_name} skipped")
+            return model_name, None, None, 0
+
+    except Exception as e:
+        print(f"\n[{thread_name}] ❌ {model_name} failed: {e}")
+        return model_name, None, None, 0
+
+start_time = time.time()
+
+if PARALLEL_TRAINING:
+    # Parallel training using ThreadPoolExecutor
+    print("⏳ Launching parallel training threads...\n")
+
+    with ThreadPoolExecutor(max_workers=3, thread_name_prefix="Model") as executor:
+        # Submit all training jobs
+        futures = {
+            executor.submit(train_model_wrapper, config): config[0]
+            for config in MODEL_CONFIGS
+        }
+
+        # Collect results as they complete
+        for future in as_completed(futures):
+            model_name, model, history, duration = future.result()
+
+            if model is not None:
+                trained_models[model_name] = model
+                training_histories[model_name] = history
+                model_timings[model_name] = duration
+
+else:
+    # Sequential training (fallback)
+    print("⏳ Starting sequential training...\n")
+
+    for model_config in MODEL_CONFIGS:
+        model_name, model, history, duration = train_model_wrapper(model_config)
+
+        if model is not None:
+            trained_models[model_name] = model
+            training_histories[model_name] = history
+            model_timings[model_name] = duration
 
 total_duration = time.time() - start_time
 
@@ -964,9 +1039,26 @@ print(f"\n{'=' * 60}")
 print("🎉 ALL TRAINING COMPLETE")
 print("=" * 60)
 print(f"\n✓ Trained {len(trained_models)} models:")
-for name in trained_models.keys():
-    print(f"  • {name}")
-print(f"\n⏱️  Total time: {total_duration / 60:.1f} minutes ({total_duration / 3600:.2f} hours)")
+
+# Show individual model timings
+if model_timings:
+    print(f"\n⏱️  Individual model times:")
+    for name, duration in sorted(model_timings.items(), key=lambda x: x[1], reverse=True):
+        print(f"  • {name}: {duration / 60:.1f} minutes")
+
+    if PARALLEL_TRAINING and len(model_timings) > 1:
+        sequential_time = sum(model_timings.values()) / 60
+        parallel_time = total_duration / 60
+        speedup = sequential_time / parallel_time if parallel_time > 0 else 1
+        print(f"\n📊 Parallel efficiency:")
+        print(f"  Sequential time (estimated): {sequential_time:.1f} minutes")
+        print(f"  Parallel time (actual): {parallel_time:.1f} minutes")
+        print(f"  Speedup: {speedup:.1f}x faster!")
+else:
+    for name in trained_models.keys():
+        print(f"  • {name}")
+
+print(f"\n⏱️  Total wallclock time: {total_duration / 60:.1f} minutes ({total_duration / 3600:.2f} hours)")
 
 # %%
 # Cache pretrained weights to GCS for next time
