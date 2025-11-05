@@ -765,49 +765,223 @@ def build_transfer_model(base_model_class, model_name, config):
 print("✓ Model building function defined")
 
 # %% [markdown]
-# ## 13. Progress Monitoring Callback
+# ## 13. Install IPyWidgets for Parallel Progress Visualization
 
 # %%
-class ProgressMonitorCallback(keras.callbacks.Callback):
-    """Custom callback to show GPU memory and progress during training"""
+!pip install -q ipywidgets
 
-    def __init__(self, model_name, total_epochs, stage_name="Training"):
-        super().__init__()
-        self.model_name = model_name
-        self.total_epochs = total_epochs
-        self.stage_name = stage_name
-        self.epoch_start_time = None
+from ipywidgets import HBox, VBox, IntProgress, HTML, Layout
+from IPython.display import display
+import threading
 
-    def on_epoch_begin(self, epoch, logs=None):
-        self.epoch_start_time = time.time()
-        print(f"\n[{self.model_name}] {self.stage_name} - Epoch {epoch + 1}/{self.total_epochs}")
+print("✓ IPyWidgets installed")
 
-        # Show GPU memory if available
+# %% [markdown]
+# ## 14. Multi-Model Progress Widget
+
+# %%
+class ParallelTrainingWidget:
+    """Widget to show progress for multiple models training in parallel"""
+
+    def __init__(self, model_names, total_epochs_s1, total_epochs_s2):
+        self.model_names = model_names
+        self.total_epochs_s1 = total_epochs_s1
+        self.total_epochs_s2 = total_epochs_s2
+        self.lock = threading.Lock()
+
+        # Create widgets for each model
+        self.widgets = {}
+        model_boxes = []
+
+        for model_name in model_names:
+            # Progress bar for Stage 1
+            progress_s1 = IntProgress(
+                value=0,
+                min=0,
+                max=total_epochs_s1,
+                description='',
+                bar_style='info',
+                layout=Layout(width='100%')
+            )
+
+            # Progress bar for Stage 2
+            progress_s2 = IntProgress(
+                value=0,
+                min=0,
+                max=total_epochs_s2,
+                description='',
+                bar_style='success',
+                layout=Layout(width='100%')
+            )
+
+            # Status label
+            status = HTML(
+                value=f"<b>{model_name}</b>: Waiting to start...",
+                layout=Layout(width='100%')
+            )
+
+            # Metrics label
+            metrics = HTML(
+                value="",
+                layout=Layout(width='100%')
+            )
+
+            # Store widgets
+            self.widgets[model_name] = {
+                'progress_s1': progress_s1,
+                'progress_s2': progress_s2,
+                'status': status,
+                'metrics': metrics,
+                'current_stage': 1,
+                'epoch_times': []
+            }
+
+            # Create vertical box for this model
+            model_box = VBox([
+                status,
+                HTML(value="<small>Stage 1: Feature Extraction</small>"),
+                progress_s1,
+                HTML(value="<small>Stage 2: Fine-Tuning</small>"),
+                progress_s2,
+                metrics,
+                HTML(value="<hr style='margin: 10px 0;'>")
+            ])
+            model_boxes.append(model_box)
+
+        # GPU memory widget
+        self.gpu_widget = HTML(
+            value="<b>GPU Memory:</b> Monitoring...",
+            layout=Layout(width='100%')
+        )
+
+        # Overall container
+        self.container = VBox([
+            HTML(value="<h3>🚀 Parallel Training Progress</h3>"),
+            self.gpu_widget,
+            HTML(value="<hr>"),
+            *model_boxes
+        ])
+
+    def display(self):
+        """Display the widget"""
+        display(self.container)
+
+    def update_status(self, model_name, stage, epoch, total_epochs):
+        """Update status for a model"""
+        with self.lock:
+            widget = self.widgets[model_name]
+            widget['current_stage'] = stage
+            stage_name = "Stage 1: Feature Extraction" if stage == 1 else "Stage 2: Fine-Tuning"
+            widget['status'].value = f"<b>{model_name}</b>: {stage_name} - Epoch {epoch}/{total_epochs}"
+
+    def update_progress(self, model_name, stage, epoch):
+        """Update progress bar for a model"""
+        with self.lock:
+            widget = self.widgets[model_name]
+            if stage == 1:
+                widget['progress_s1'].value = epoch
+            else:
+                widget['progress_s2'].value = epoch
+
+    def update_metrics(self, model_name, epoch_time, logs):
+        """Update metrics for a model"""
+        with self.lock:
+            widget = self.widgets[model_name]
+            widget['epoch_times'].append(epoch_time)
+
+            # Calculate ETA
+            avg_time = sum(widget['epoch_times'][-5:]) / len(widget['epoch_times'][-5:])
+            total_epochs = self.total_epochs_s1 if widget['current_stage'] == 1 else self.total_epochs_s2
+            current_epoch = widget['progress_s1'].value if widget['current_stage'] == 1 else widget['progress_s2'].value
+            remaining = total_epochs - current_epoch
+            eta_min = (avg_time * remaining) / 60
+
+            # Format metrics
+            metrics_str = " | ".join([f"{k}: {v:.4f}" for k, v in logs.items() if not k.startswith('val_')])
+            val_metrics_str = " | ".join([f"{k}: {v:.4f}" for k, v in logs.items() if k.startswith('val_')])
+
+            widget['metrics'].value = (
+                f"<small>"
+                f"⏱️ {epoch_time:.1f}s/epoch | ETA: {eta_min:.1f} min<br>"
+                f"📊 Train: {metrics_str}<br>"
+                f"📊 Val: {val_metrics_str}"
+                f"</small>"
+            )
+
+    def update_gpu(self):
+        """Update GPU memory display"""
         try:
             import subprocess
             gpu_mem = subprocess.check_output(
-                ['nvidia-smi', '--query-gpu=memory.used,memory.total', '--format=csv,nounits,noheader'],
+                ['nvidia-smi', '--query-gpu=memory.used,memory.total,utilization.gpu', '--format=csv,nounits,noheader'],
                 encoding='utf-8'
             ).strip().split(',')
             used_mb = int(gpu_mem[0])
             total_mb = int(gpu_mem[1])
-            pct = (used_mb / total_mb) * 100
-            print(f"  GPU Memory: {used_mb:,} MB / {total_mb:,} MB ({pct:.1f}%)")
+            util_pct = int(gpu_mem[2])
+            mem_pct = (used_mb / total_mb) * 100
+
+            # Color based on utilization
+            if mem_pct > 80:
+                color = 'red'
+            elif mem_pct > 60:
+                color = 'orange'
+            else:
+                color = 'green'
+
+            self.gpu_widget.value = (
+                f"<b>GPU Memory:</b> <span style='color:{color}'>"
+                f"{used_mb:,} MB / {total_mb:,} MB ({mem_pct:.1f}%)</span> | "
+                f"<b>Compute:</b> {util_pct}%"
+            )
         except:
             pass
 
+    def mark_complete(self, model_name):
+        """Mark a model as complete"""
+        with self.lock:
+            widget = self.widgets[model_name]
+            widget['status'].value = f"<b>{model_name}</b>: ✅ <span style='color:green'>Complete!</span>"
+            widget['progress_s1'].bar_style = 'success'
+            widget['progress_s2'].bar_style = 'success'
+
+# Global widget instance
+training_widget = None
+
+print("✓ Parallel training widget defined")
+
+# %% [markdown]
+# ## 15. Progress Monitoring Callback with Widget Support
+
+# %%
+class ProgressMonitorCallback(keras.callbacks.Callback):
+    """Custom callback that updates both console and widget"""
+
+    def __init__(self, model_name, total_epochs, stage_num, widget=None):
+        super().__init__()
+        self.model_name = model_name
+        self.total_epochs = total_epochs
+        self.stage_num = stage_num
+        self.widget = widget
+        self.epoch_start_time = None
+
+    def on_epoch_begin(self, epoch, logs=None):
+        self.epoch_start_time = time.time()
+
+        # Update widget
+        if self.widget:
+            self.widget.update_status(self.model_name, self.stage_num, epoch + 1, self.total_epochs)
+            self.widget.update_gpu()
+
     def on_epoch_end(self, epoch, logs=None):
-        if self.epoch_start_time:
+        if self.epoch_start_time and logs:
             duration = time.time() - self.epoch_start_time
-            remaining_epochs = self.total_epochs - (epoch + 1)
-            eta_minutes = (duration * remaining_epochs) / 60
 
-            print(f"  Epoch time: {duration:.1f}s | ETA: {eta_minutes:.1f} min")
-
-            # Show metrics
-            if logs:
-                metrics_str = " | ".join([f"{k}: {v:.4f}" for k, v in logs.items()])
-                print(f"  Metrics: {metrics_str}")
+            # Update widget
+            if self.widget:
+                self.widget.update_progress(self.model_name, self.stage_num, epoch + 1)
+                self.widget.update_metrics(self.model_name, duration, logs)
+                self.widget.update_gpu()
 
 print("✓ Progress monitoring callback defined")
 
@@ -835,7 +1009,7 @@ def upload_to_gcs(local_path, gcs_path):
     print(f"    ✓ Uploaded to {gcs_path} ({size_mb:.2f} MB)")
 
 def train_transfer_learning_model(model_class, model_name, train_dataset, val_dataset,
-                                    config, models_to_train, run_name):
+                                    config, models_to_train, run_name, widget=None):
     """
     Train a transfer learning model with two-stage training.
     Saves models to GCS 40_models/ layer.
@@ -884,7 +1058,8 @@ def train_transfer_learning_model(model_class, model_name, train_dataset, val_da
             ProgressMonitorCallback(
                 model_name=model_name,
                 total_epochs=config['epochs_stage1'],
-                stage_name="Stage 1: Feature Extraction"
+                stage_num=1,
+                widget=widget
             ),
             callbacks.EarlyStopping(
                 monitor='val_auc',
@@ -940,7 +1115,8 @@ def train_transfer_learning_model(model_class, model_name, train_dataset, val_da
             ProgressMonitorCallback(
                 model_name=model_name,
                 total_epochs=config['epochs_stage2'],
-                stage_name="Stage 2: Fine-Tuning"
+                stage_num=2,
+                widget=widget
             ),
             callbacks.ModelCheckpoint(
                 str(local_model_path),
@@ -1048,7 +1224,8 @@ def train_model_wrapper(model_config):
             val_dataset=val_dataset,
             config=CONFIG,
             models_to_train=MODELS_TO_TRAIN,
-            run_name=RUN_NAME
+            run_name=RUN_NAME,
+            widget=training_widget if PARALLEL_TRAINING else None
         )
 
         model_duration = time.time() - model_start
@@ -1065,6 +1242,16 @@ def train_model_wrapper(model_config):
         return model_name, None, None, 0
 
 start_time = time.time()
+
+# Create progress widget for parallel training
+if PARALLEL_TRAINING:
+    training_widget = ParallelTrainingWidget(
+        model_names=[config[0] for config in MODEL_CONFIGS],
+        total_epochs_s1=CONFIG['epochs_stage1'],
+        total_epochs_s2=CONFIG['epochs_stage2']
+    )
+    training_widget.display()
+    print()
 
 if PARALLEL_TRAINING:
     # Parallel training using ThreadPoolExecutor
@@ -1085,6 +1272,10 @@ if PARALLEL_TRAINING:
                 trained_models[model_name] = model
                 training_histories[model_name] = history
                 model_timings[model_name] = duration
+
+                # Mark complete in widget
+                if training_widget:
+                    training_widget.mark_complete(model_name)
 
 else:
     # Sequential training (fallback)
