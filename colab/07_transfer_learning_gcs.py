@@ -352,11 +352,10 @@ for subdir_idx, subdir in enumerate(sorted(subdirs), 1):
 
     print(f"[{subdir_idx}/{len(subdirs)}] Scanning {subdir}...", end=' ', flush=True)
 
-    # List all .png files in this subdirectory
+    # List all .png files in this subdirectory (no delimiter to see actual files)
     image_blobs = storage_client.list_blobs(
         BUCKET_NAME,
-        prefix=images_prefix,
-        delimiter='/'
+        prefix=images_prefix
     )
 
     count = 0
