@@ -765,7 +765,54 @@ def build_transfer_model(base_model_class, model_name, config):
 print("✓ Model building function defined")
 
 # %% [markdown]
-# ## 13. Training Function with GCS Model Saving
+# ## 13. Progress Monitoring Callback
+
+# %%
+class ProgressMonitorCallback(keras.callbacks.Callback):
+    """Custom callback to show GPU memory and progress during training"""
+
+    def __init__(self, model_name, total_epochs, stage_name="Training"):
+        super().__init__()
+        self.model_name = model_name
+        self.total_epochs = total_epochs
+        self.stage_name = stage_name
+        self.epoch_start_time = None
+
+    def on_epoch_begin(self, epoch, logs=None):
+        self.epoch_start_time = time.time()
+        print(f"\n[{self.model_name}] {self.stage_name} - Epoch {epoch + 1}/{self.total_epochs}")
+
+        # Show GPU memory if available
+        try:
+            import subprocess
+            gpu_mem = subprocess.check_output(
+                ['nvidia-smi', '--query-gpu=memory.used,memory.total', '--format=csv,nounits,noheader'],
+                encoding='utf-8'
+            ).strip().split(',')
+            used_mb = int(gpu_mem[0])
+            total_mb = int(gpu_mem[1])
+            pct = (used_mb / total_mb) * 100
+            print(f"  GPU Memory: {used_mb:,} MB / {total_mb:,} MB ({pct:.1f}%)")
+        except:
+            pass
+
+    def on_epoch_end(self, epoch, logs=None):
+        if self.epoch_start_time:
+            duration = time.time() - self.epoch_start_time
+            remaining_epochs = self.total_epochs - (epoch + 1)
+            eta_minutes = (duration * remaining_epochs) / 60
+
+            print(f"  Epoch time: {duration:.1f}s | ETA: {eta_minutes:.1f} min")
+
+            # Show metrics
+            if logs:
+                metrics_str = " | ".join([f"{k}: {v:.4f}" for k, v in logs.items()])
+                print(f"  Metrics: {metrics_str}")
+
+print("✓ Progress monitoring callback defined")
+
+# %% [markdown]
+# ## 14. Training Function with GCS Model Saving
 
 # %%
 def upload_to_gcs(local_path, gcs_path):
@@ -819,6 +866,9 @@ def train_transfer_learning_model(model_class, model_name, train_dataset, val_da
     print("\n" + "-" * 60)
     print("STAGE 1: Feature Extraction (base frozen)")
     print("-" * 60)
+    print(f"Learning rate: {config['learning_rate_stage1']}")
+    print(f"Epochs: {config['epochs_stage1']}")
+    print()
 
     model.compile(
         optimizer=keras.optimizers.Adam(learning_rate=config['learning_rate_stage1']),
@@ -831,6 +881,11 @@ def train_transfer_learning_model(model_class, model_name, train_dataset, val_da
         epochs=config['epochs_stage1'],
         validation_data=val_dataset,
         callbacks=[
+            ProgressMonitorCallback(
+                model_name=model_name,
+                total_epochs=config['epochs_stage1'],
+                stage_name="Stage 1: Feature Extraction"
+            ),
             callbacks.EarlyStopping(
                 monitor='val_auc',
                 mode='max',
@@ -839,7 +894,7 @@ def train_transfer_learning_model(model_class, model_name, train_dataset, val_da
                 verbose=1
             )
         ],
-        verbose=2
+        verbose=1  # Full progress bars
     )
 
     print("\n✓ Stage 1 complete")
@@ -855,7 +910,12 @@ def train_transfer_learning_model(model_class, model_name, train_dataset, val_da
         layer.trainable = False
 
     trainable_layers = sum([1 for layer in base_model.layers if layer.trainable])
+    trainable_params = sum([tf.size(w).numpy() for w in model.trainable_weights])
     print(f"Unfrozen layers: {trainable_layers} / {len(base_model.layers)}")
+    print(f"Trainable parameters: {trainable_params:,}")
+    print(f"Learning rate: {config['learning_rate_stage2']} (reduced)")
+    print(f"Epochs: {config['epochs_stage2']}")
+    print()
 
     # Recompile with lower learning rate
     model.compile(
@@ -877,6 +937,11 @@ def train_transfer_learning_model(model_class, model_name, train_dataset, val_da
         epochs=config['epochs_stage2'],
         validation_data=val_dataset,
         callbacks=[
+            ProgressMonitorCallback(
+                model_name=model_name,
+                total_epochs=config['epochs_stage2'],
+                stage_name="Stage 2: Fine-Tuning"
+            ),
             callbacks.ModelCheckpoint(
                 str(local_model_path),
                 monitor='val_auc',
@@ -892,7 +957,7 @@ def train_transfer_learning_model(model_class, model_name, train_dataset, val_da
                 verbose=1
             )
         ],
-        verbose=2
+        verbose=1  # Full progress bars
     )
 
     print(f"\n✓ Model trained and saved locally: {local_model_path}")
