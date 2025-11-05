@@ -278,12 +278,12 @@ for i, disease in enumerate(disease_classes, 1):
 # We need to build a mapping: filename → GCS path
 
 # %%
-print("🔍 Building image path index from GCS...")
-print("   This may take 2-3 minutes for 112K images...")
+print("🔍 Loading image path index...")
 print()
 
 from google.cloud import storage
 import time
+import json
 
 # Create storage client
 storage_client = storage.Client(project=PROJECT_ID)
@@ -291,54 +291,107 @@ storage_client = storage.Client(project=PROJECT_ID)
 # Build mapping: filename -> GCS path
 filename_to_gcs_path = {}
 
-# List all images in the bucket
-prefix = "00_raw/nih-cxr/images/"
-print(f"📂 Scanning bucket: gs://{BUCKET_NAME}/{prefix}")
+# Cache location in medallion structure
+INDEX_CACHE_PATH = "10_bronze/nih-cxr/image_path_index.json"
+INDEX_CACHE_GCS = f"gs://{BUCKET_NAME}/{INDEX_CACHE_PATH}"
 
 start_time = time.time()
-total_images = 0
 
-# Get all subdirectories (images_001, images_002, etc.)
-iterator = storage_client.list_blobs(BUCKET_NAME, prefix=prefix, delimiter='/')
-# Force iteration to populate prefixes
-_ = list(iterator)
-# Now get prefixes
-subdirs = [p for p in iterator.prefixes if 'images_' in p]
+# Try to load cached index
+try:
+    print(f"📦 Checking for cached index at {INDEX_CACHE_GCS}...")
+    bucket = storage_client.bucket(BUCKET_NAME)
+    blob = bucket.blob(INDEX_CACHE_PATH)
 
-print(f"✓ Found {len(subdirs)} image subdirectories")
-print()
+    if blob.exists():
+        # Download and parse JSON
+        index_json = blob.download_as_text()
+        filename_to_gcs_path = json.loads(index_json)
+        total_images = len(filename_to_gcs_path)
+        elapsed = time.time() - start_time
 
-# For each subdirectory, list images
-for subdir_idx, subdir in enumerate(sorted(subdirs), 1):
-    # Each subdir is like: 00_raw/nih-cxr/images/images_001/
-    # Images are in: 00_raw/nih-cxr/images/images_001/images/
-    images_prefix = f"{subdir}images/"
+        print(f"✅ Loaded cached index: {total_images:,} images in {elapsed:.1f} seconds")
+        print(f"   (Much faster than rebuilding!)")
+        print()
+    else:
+        raise FileNotFoundError("Cache not found, will build from scratch")
 
-    print(f"[{subdir_idx}/{len(subdirs)}] Scanning {subdir}...", end=' ', flush=True)
+except Exception as e:
+    # Cache not found or error - build from scratch
+    print(f"⚠️  Cached index not available: {e}")
+    print(f"   Building index from scratch (this may take 2-3 minutes)...")
+    print()
 
-    # List all .png files in this subdirectory (no delimiter to see actual files)
-    image_blobs = storage_client.list_blobs(
-        BUCKET_NAME,
-        prefix=images_prefix
-    )
+    # List all images in the bucket
+    prefix = "00_raw/nih-cxr/images/"
+    print(f"📂 Scanning bucket: gs://{BUCKET_NAME}/{prefix}")
 
-    count = 0
-    for blob in image_blobs:
-        if blob.name.endswith('.png'):
-            # Extract filename (e.g., "00000001_000.png")
-            filename = blob.name.split('/')[-1]
+    build_start_time = time.time()
+    total_images = 0
 
-            # Store GCS path
-            gcs_path = f"gs://{BUCKET_NAME}/{blob.name}"
-            filename_to_gcs_path[filename] = gcs_path
-            count += 1
+    # Get all subdirectories (images_001, images_002, etc.)
+    iterator = storage_client.list_blobs(BUCKET_NAME, prefix=prefix, delimiter='/')
+    # Force iteration to populate prefixes
+    _ = list(iterator)
+    # Now get prefixes
+    subdirs = [p for p in iterator.prefixes if 'images_' in p]
 
-    total_images += count
-    print(f"✓ {count:,} images")
+    print(f"✓ Found {len(subdirs)} image subdirectories")
+    print()
+
+    # For each subdirectory, list images
+    for subdir_idx, subdir in enumerate(sorted(subdirs), 1):
+        # Each subdir is like: 00_raw/nih-cxr/images/images_001/
+        # Images are in: 00_raw/nih-cxr/images/images_001/images/
+        images_prefix = f"{subdir}images/"
+
+        print(f"[{subdir_idx}/{len(subdirs)}] Scanning {subdir}...", end=' ', flush=True)
+
+        # List all .png files in this subdirectory (no delimiter to see actual files)
+        image_blobs = storage_client.list_blobs(
+            BUCKET_NAME,
+            prefix=images_prefix
+        )
+
+        count = 0
+        for blob in image_blobs:
+            if blob.name.endswith('.png'):
+                # Extract filename (e.g., "00000001_000.png")
+                filename = blob.name.split('/')[-1]
+
+                # Store GCS path
+                gcs_path = f"gs://{BUCKET_NAME}/{blob.name}"
+                filename_to_gcs_path[filename] = gcs_path
+                count += 1
+
+        total_images += count
+        print(f"✓ {count:,} images")
+
+    elapsed = time.time() - build_start_time
+    print()
+    print(f"✅ Index built: {total_images:,} images in {elapsed:.1f} seconds")
+
+    # Save to GCS for next time
+    print()
+    print(f"💾 Saving index cache to {INDEX_CACHE_GCS}...")
+    try:
+        bucket = storage_client.bucket(BUCKET_NAME)
+        blob = bucket.blob(INDEX_CACHE_PATH)
+
+        # Upload JSON
+        index_json = json.dumps(filename_to_gcs_path, indent=2)
+        blob.upload_from_string(index_json, content_type='application/json')
+
+        print(f"✅ Index cached for next run!")
+        print(f"   Next time this will load in ~1 second instead of {elapsed:.0f} seconds")
+    except Exception as save_error:
+        print(f"⚠️  Failed to cache index: {save_error}")
+        print(f"   (Not critical - will rebuild next time)")
+
+    print()
 
 elapsed = time.time() - start_time
-print()
-print(f"✅ Index complete: {total_images:,} images in {elapsed:.1f} seconds")
+print(f"⏱️  Total time: {elapsed:.1f} seconds")
 print()
 
 # Verify we found all expected images
@@ -541,7 +594,61 @@ print(f"  Batch shape: {images.shape}")
 print(f"  Labels shape: {labels.shape}")
 
 # %% [markdown]
-# ## 12. Model Building Functions
+# ## 12. Cache Pretrained Weights
+
+# %%
+print("🔍 Setting up pretrained model weights cache...")
+print()
+
+# Keras stores downloaded weights in ~/.keras/models/
+KERAS_CACHE_DIR = Path.home() / '.keras' / 'models'
+KERAS_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+# GCS cache location for pretrained weights
+WEIGHTS_CACHE_GCS = f"{GCS_BUCKET}/70_cfg/pretrained_weights/"
+
+# Weight files we expect to download
+EXPECTED_WEIGHTS = {
+    'resnet50': 'resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5',
+    'densenet121': 'densenet121_weights_tf_dim_ordering_tf_kernels_notop.h5',
+    'efficientnetb3': 'efficientnetb3_notop.h5'
+}
+
+# Try to download cached weights from GCS
+print(f"📦 Checking for cached weights in {WEIGHTS_CACHE_GCS}...")
+bucket = storage_client.bucket(BUCKET_NAME)
+weights_downloaded = 0
+
+for model_name, weight_file in EXPECTED_WEIGHTS.items():
+    local_path = KERAS_CACHE_DIR / weight_file
+    gcs_path = f"70_cfg/pretrained_weights/{weight_file}"
+    blob = bucket.blob(gcs_path)
+
+    # Only download if we don't already have it locally
+    if not local_path.exists():
+        if blob.exists():
+            print(f"  ⬇️  Downloading {weight_file}...", end=' ', flush=True)
+            try:
+                blob.download_to_filename(str(local_path))
+                size_mb = local_path.stat().st_size / (1024 * 1024)
+                print(f"✓ ({size_mb:.1f} MB)")
+                weights_downloaded += 1
+            except Exception as e:
+                print(f"⚠️  Failed: {e}")
+        else:
+            print(f"  ⏭️  {weight_file} not in cache (will download from ImageNet)")
+    else:
+        print(f"  ✓ {weight_file} already cached locally")
+
+if weights_downloaded > 0:
+    print(f"\n✅ Downloaded {weights_downloaded} weight file(s) from GCS cache")
+else:
+    print(f"\n✓ All weights available (will be cached to GCS after first download)")
+
+print()
+
+# %% [markdown]
+# ## 13. Model Building Functions
 
 # %%
 def build_transfer_model(base_model_class, model_name, config):
@@ -777,6 +884,40 @@ print(f"\n✓ Trained {len(trained_models)} models:")
 for name in trained_models.keys():
     print(f"  • {name}")
 print(f"\n⏱️  Total time: {total_duration / 60:.1f} minutes ({total_duration / 3600:.2f} hours)")
+
+# %%
+# Cache pretrained weights to GCS for next time
+print(f"\n💾 Caching pretrained weights to GCS...")
+print()
+
+weights_uploaded = 0
+for model_name, weight_file in EXPECTED_WEIGHTS.items():
+    local_path = KERAS_CACHE_DIR / weight_file
+    gcs_path = f"70_cfg/pretrained_weights/{weight_file}"
+    blob = bucket.blob(gcs_path)
+
+    # Upload if file exists locally but not in GCS
+    if local_path.exists() and not blob.exists():
+        print(f"  ⬆️  Uploading {weight_file}...", end=' ', flush=True)
+        try:
+            blob.upload_from_filename(str(local_path))
+            size_mb = local_path.stat().st_size / (1024 * 1024)
+            print(f"✓ ({size_mb:.1f} MB)")
+            weights_uploaded += 1
+        except Exception as e:
+            print(f"⚠️  Failed: {e}")
+    elif blob.exists():
+        print(f"  ✓ {weight_file} already in GCS cache")
+    else:
+        print(f"  ⏭️  {weight_file} not found locally")
+
+if weights_uploaded > 0:
+    print(f"\n✅ Uploaded {weights_uploaded} weight file(s) to GCS cache")
+    print(f"   Next session will load these from GCS instead of downloading from ImageNet!")
+else:
+    print(f"\n✓ All weights already cached in GCS")
+
+print()
 
 # %% [markdown]
 # ## 15. Visualize Training History

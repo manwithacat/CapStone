@@ -130,10 +130,15 @@ Runtime > Run all (or run cells sequentially)
 The notebook will:
 1. Authenticate with GCS
 2. Download CSV manifests (7 MB)
-3. Build image path index (2-3 min for 112K images)
-4. Create data generators
-5. Train selected models
-6. Upload results back to GCS
+3. Load or build image path index
+   - **First run**: Builds index from 112K images (2-3 min), caches to GCS
+   - **Subsequent runs**: Loads cached index (~1 second)
+4. Load or download pretrained model weights
+   - **First run**: Downloads from ImageNet (~178 MB), caches to GCS
+   - **Subsequent runs**: Loads from GCS cache (~10 seconds)
+5. Create data generators
+6. Train selected models
+7. Upload results back to GCS
 
 ## What the Notebook Does
 
@@ -190,6 +195,63 @@ All saved to GCS medallion layers:
     2025-11-05_160112_resnet50_training_history.png
     2025-11-05_160112_densenet121_training_history.png
 ```
+
+## Performance Optimizations
+
+### Caching Strategy
+
+The notebook includes intelligent caching to minimize repeated downloads:
+
+**1. Image Path Index Cache**
+- **Location**: `gs://nih-xrays/10_bronze/nih-cxr/image_path_index.json`
+- **First run**: Scans bucket for 112K images (2-3 minutes), saves JSON index
+- **Subsequent runs**: Loads JSON index (~1 second)
+- **Speedup**: ~100x faster startup
+
+**2. Pretrained Weights Cache**
+- **Location**: `gs://nih-xrays/70_cfg/pretrained_weights/`
+- **Cached files**:
+  - `resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5` (98 MB)
+  - `densenet121_weights_tf_dim_ordering_tf_kernels_notop.h5` (33 MB)
+  - `efficientnetb3_notop.h5` (47 MB)
+- **First run**: Downloads from ImageNet (~3-5 min), uploads to GCS cache
+- **Subsequent runs**: Downloads from GCS (~10 seconds)
+- **Speedup**: ~20x faster model initialization
+
+### Cache Management
+
+**To rebuild the image path index** (if images added/removed):
+```bash
+# From local machine
+gsutil rm gs://nih-xrays/10_bronze/nih-cxr/image_path_index.json
+```
+
+**To clear pretrained weights cache** (to force re-download):
+```bash
+# From local machine
+gsutil -m rm gs://nih-xrays/70_cfg/pretrained_weights/*.h5
+```
+
+**Storage impact:**
+- Image path index: ~3 MB (JSON)
+- Pretrained weights: ~178 MB (3 models)
+- Total cache overhead: ~181 MB (~$0.004/month)
+
+### First vs. Subsequent Runs
+
+**First Run** (cold start):
+- Download manifests: 10 seconds
+- Build image index: 2-3 minutes
+- Download weights: 3-5 minutes
+- **Total overhead**: ~6-8 minutes
+
+**Subsequent Runs** (warm start):
+- Download manifests: 10 seconds
+- Load cached index: 1 second
+- Load cached weights: 10 seconds
+- **Total overhead**: ~20 seconds
+
+**Time saved**: ~5-7 minutes per session after first run!
 
 ## Troubleshooting
 

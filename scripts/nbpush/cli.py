@@ -11,8 +11,10 @@ Usage:
 """
 
 import sys
+import json
+import re
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, Any
 
 import typer
 import questionary
@@ -24,6 +26,65 @@ from rich import box
 from .scanner import NotebookScanner
 from .pusher import CloudPusher
 from .logger import get_logger
+
+
+def extract_notebook_config(notebook_path: Path) -> Dict[str, Any]:
+    """
+    Extract CONFIG values from a notebook.
+
+    Returns dict with:
+        - use_sample: bool or None
+        - sample_size: int or None
+        - batch_size: int or None
+        - epochs_stage1: int or None
+        - epochs_stage2: int or None
+    """
+    config = {}
+
+    try:
+        with open(notebook_path, 'r', encoding='utf-8') as f:
+            notebook_json = json.load(f)
+
+        # Search through all code cells
+        for cell in notebook_json.get('cells', []):
+            if cell.get('cell_type') == 'code':
+                source = ''.join(cell.get('source', []))
+
+                # Look for CONFIG = { ... } dictionary
+                if 'CONFIG' in source and ('use_sample' in source or 'sample_size' in source):
+                    # Extract use_sample
+                    match = re.search(r"['\"]use_sample['\"]\s*:\s*(True|False)", source)
+                    if match:
+                        config['use_sample'] = match.group(1) == 'True'
+
+                    # Extract sample_size
+                    match = re.search(r"['\"]sample_size['\"]\s*:\s*(\d+)", source)
+                    if match:
+                        config['sample_size'] = int(match.group(1))
+
+                    # Extract batch_size
+                    match = re.search(r"['\"]batch_size['\"]\s*:\s*(\d+)", source)
+                    if match:
+                        config['batch_size'] = int(match.group(1))
+
+                    # Extract epochs
+                    match = re.search(r"['\"]epochs_stage1['\"]\s*:\s*(\d+)", source)
+                    if match:
+                        config['epochs_stage1'] = int(match.group(1))
+
+                    match = re.search(r"['\"]epochs_stage2['\"]\s*:\s*(\d+)", source)
+                    if match:
+                        config['epochs_stage2'] = int(match.group(1))
+
+                    # If we found config values, we're done
+                    if config:
+                        break
+
+    except Exception:
+        # If anything goes wrong, just return empty config
+        pass
+
+    return config
 
 app = typer.Typer(
     name="nbpush",
@@ -388,13 +449,36 @@ def select(
             console.print(f"Platform: {nb.platform}, expected: colab or local")
             return
 
-    # Step 4: Confirm and push
+    # Step 4: Extract config and confirm
+    config = extract_notebook_config(nb.path)
+
+    # Build config display
+    config_lines = []
+    if config:
+        config_lines.append("\n[bold cyan]Config:[/bold cyan]")
+        if 'use_sample' in config:
+            sample_val = "[green]True[/green]" if config['use_sample'] else "[red]False[/red]"
+            config_lines.append(f"  use_sample: {sample_val}")
+        if 'sample_size' in config:
+            config_lines.append(f"  sample_size: [yellow]{config['sample_size']}[/yellow]")
+        if 'batch_size' in config:
+            config_lines.append(f"  batch_size: [yellow]{config['batch_size']}[/yellow]")
+        if 'epochs_stage1' in config and 'epochs_stage2' in config:
+            config_lines.append(f"  epochs: [yellow]{config['epochs_stage1']} + {config['epochs_stage2']}[/yellow]")
+        elif 'epochs_stage1' in config:
+            config_lines.append(f"  epochs_stage1: [yellow]{config['epochs_stage1']}[/yellow]")
+        elif 'epochs_stage2' in config:
+            config_lines.append(f"  epochs_stage2: [yellow]{config['epochs_stage2']}[/yellow]")
+
+    config_str = '\n'.join(config_lines) if config_lines else ""
+
     panel = Panel(
         f"[bold]{nb.relative_path}[/bold]\n"
         f"Platform: [magenta]{nb.platform}[/magenta]\n"
         f"Size: [green]{nb.size_mb:.1f}MB[/green]\n"
         f"Target: [cyan]{service_name}[/cyan]\n"
-        f"Dry run: [yellow]{dry_run}[/yellow]",
+        f"Dry run: [yellow]{dry_run}[/yellow]"
+        f"{config_str}",
         title="📤 Ready to Push",
         border_style="cyan"
     )
