@@ -32,36 +32,75 @@
 !nvidia-smi
 
 # %% [markdown]
-# ## 2. Setup GCS Authentication (Service Account)
+# ## 2. Mount Google Drive (Optional - for persistent credentials)
 #
-# **Upload your service account JSON key:**
-# 1. Download from Google Cloud Console > IAM > Service Accounts
-# 2. Upload using the file picker below
-# 3. Project ID will be auto-detected
+# **Recommended**: Store service account key in Google Drive to avoid re-uploading each session
+
+# %%
+from google.colab import drive
+from pathlib import Path
+
+# Mount Google Drive
+print("📂 Mounting Google Drive...")
+drive.mount('/content/drive', force_remount=False)
+print("✓ Drive mounted at /content/drive")
+
+# Check if service account key exists in Drive
+DRIVE_KEY_PATH = Path('/content/drive/MyDrive/colab_credentials/nih-xrays-service-account.json')
+
+if DRIVE_KEY_PATH.exists():
+    print(f"✓ Found service account key in Drive: {DRIVE_KEY_PATH}")
+else:
+    print(f"\n⚠️  Service account key not found at: {DRIVE_KEY_PATH}")
+    print("   To save for next time:")
+    print("   1. Upload your JSON key using the file picker below")
+    print("   2. I'll copy it to your Drive automatically")
+
+# %% [markdown]
+# ## 3. Setup GCS Authentication (Service Account)
+#
+# **Option A**: Use key from Google Drive (recommended)
+# **Option B**: Upload key file (first time only)
 
 # %%
 from google.colab import files
 from google.cloud import storage
 import os
-from pathlib import Path
 import json
+import shutil
 
 BUCKET_NAME = 'nih-xrays'
 PROJECT_ID = None  # Auto-detected from credentials
+key_file = None
 
 print("🔐 GCS Service Account Authentication")
 print("=" * 60)
-print("\n📁 Upload your service account JSON key file")
-print("   (Download from Google Cloud Console > IAM > Service Accounts)")
 print()
 
-uploaded = files.upload()
+# Try to load from Drive first
+if DRIVE_KEY_PATH.exists():
+    print(f"📦 Loading service account key from Google Drive...")
+    key_file = str(DRIVE_KEY_PATH)
+    print(f"✓ Using: {DRIVE_KEY_PATH.name}")
+else:
+    # Upload and save to Drive
+    print("📁 Upload your service account JSON key file")
+    print("   (Download from Google Cloud Console > IAM > Service Accounts)")
+    print()
 
-if not uploaded:
-    raise ValueError("No file uploaded. Please upload service account JSON key.")
+    uploaded = files.upload()
 
-# Get the uploaded file name (should be .json)
-key_file = list(uploaded.keys())[0]
+    if not uploaded:
+        raise ValueError("No file uploaded. Please upload service account JSON key.")
+
+    # Get the uploaded file name
+    key_file = list(uploaded.keys())[0]
+
+    # Save to Drive for next time
+    DRIVE_KEY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy(key_file, DRIVE_KEY_PATH)
+    print(f"\n💾 Saved to Drive: {DRIVE_KEY_PATH}")
+    print(f"   Next session will load automatically!")
 
 # Set environment variable for authentication
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = key_file
@@ -99,7 +138,7 @@ print("✅ GCS Authentication Complete")
 print("=" * 60)
 
 # %% [markdown]
-# ## 3. Install Dependencies
+# ## 4. Install Dependencies
 
 # %%
 !pip install -q tensorflow matplotlib seaborn scikit-learn google-cloud-storage
@@ -109,7 +148,28 @@ print(f"TensorFlow version: {tf.__version__}")
 print(f"GPU available: {len(tf.config.list_physical_devices('GPU'))} GPUs")
 
 # %% [markdown]
-# ## 4. Import Libraries
+# ## 5. Enable Mixed Precision (A100 Optimization)
+
+# %%
+from tensorflow.keras import mixed_precision
+
+# Enable mixed precision for A100 tensor cores
+# This uses float16 for computation but float32 for variables
+# Result: ~2-3x faster training + lower memory usage
+mixed_precision.set_global_policy('mixed_float16')
+
+print("⚡ Mixed Precision Training Enabled")
+print(f"   Policy: {mixed_precision.global_policy()}")
+print(f"   Compute dtype: {mixed_precision.global_policy().compute_dtype}")
+print(f"   Variable dtype: {mixed_precision.global_policy().variable_dtype}")
+print()
+print("   Benefits:")
+print("   • 2-3x faster training on A100")
+print("   • Lower GPU memory usage")
+print("   • Same model accuracy")
+
+# %% [markdown]
+# ## 6. Import Libraries
 
 # %%
 import numpy as np
@@ -166,7 +226,7 @@ CONFIG = {
     'channels': 3,
 
     # Training parameters - Stage 1 (Feature extraction)
-    'batch_size': 64,  # Increase to 128 for A100
+    'batch_size': 1024,  # Optimized for A100 80GB (was 64)
     'epochs_stage1': 5,
     'learning_rate_stage1': 0.001,
 
@@ -185,10 +245,33 @@ CONFIG = {
 
     # Data
     'num_classes': 14,
-    'use_sample': True,  # Set to False for full training
-    'sample_size': 1000,
+    'use_sample': False,  # Full training on A100!
     'random_state': 42
 }
+
+# GPU-specific adjustments
+print("\n🔍 Detecting GPU...")
+import subprocess
+try:
+    gpu_info = subprocess.check_output(['nvidia-smi', '--query-gpu=name,memory.total', '--format=csv,noheader'], encoding='utf-8')
+    print(f"GPU: {gpu_info.strip()}")
+
+    # Auto-adjust batch size based on GPU
+    if 'A100' in gpu_info:
+        CONFIG['batch_size'] = 1024
+        print("✓ A100 detected: Using batch_size=1024")
+    elif 'V100' in gpu_info:
+        CONFIG['batch_size'] = 512
+        print("✓ V100 detected: Using batch_size=512")
+    elif 'T4' in gpu_info:
+        CONFIG['batch_size'] = 256
+        print("✓ T4 detected: Using batch_size=256")
+    else:
+        CONFIG['batch_size'] = 128
+        print(f"⚠️  Unknown GPU: Using batch_size=128")
+except:
+    print("⚠️  No GPU detected or nvidia-smi unavailable")
+    CONFIG['batch_size'] = 64
 
 # Models to train
 MODELS_TO_TRAIN = ['resnet50', 'densenet121', 'efficientnetb3']
