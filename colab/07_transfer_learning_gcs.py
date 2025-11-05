@@ -311,114 +311,155 @@ for i, disease in enumerate(disease_classes, 1):
     print(f"  {i:2d}. {disease}")
 
 # %% [markdown]
-# ## 8. Build GCS Image Paths
+# ## 8. Build GCS Image Path Index
 #
-# Update CSV paths to point to GCS raw layer
+# The CSVs contain only `Image Index` (filename), not full paths.
+# We need to build a mapping: filename → GCS path
 
 # %%
-import re
-
-def build_gcs_image_path(filename, gcs_base_path):
-    """
-    Build GCS path for an image file.
-
-    Args:
-        filename: Image filename (e.g., '00000001_000.png')
-        gcs_base_path: Base GCS path (e.g., 'gs://nih-xrays/00_raw/nih-cxr/images/')
-
-    Returns:
-        Full GCS path to the image
-    """
-    # Extract patient ID from filename (first 8 digits)
-    # Images are organized in subdirectories: images_001/, images_002/, etc.
-    # We need to determine which subdirectory based on the filename
-
-    # For now, we'll construct paths and let TensorFlow's gfile handle GCS access
-    # The images are in: gs://nih-xrays/00_raw/nih-cxr/images/images_001/images/00000001_000.png
-
-    # Pattern: Extract images_XXX directory from existing full_path if available
-    # Otherwise, we'll need to search or use a mapping
-
-    # For this implementation, we'll assume images are organized the same way as local
-    # and construct paths by searching the known subdirectories
-
-    # Since we can't efficiently search GCS for each image, we'll use a different approach:
-    # Download a manifest of image locations from GCS, or construct based on known structure
-
-    # For now, let's construct the path assuming standard NIH structure
-    # images_001 through images_012
-
-    # We'll create paths but note that TensorFlow will handle GCS access via gfile
-    return f"{gcs_base_path}{{subdir}}/images/{filename}"
-
-# Actually, let's use TensorFlow's GCS integration
-# TensorFlow can read directly from GCS using tf.io.gfile
-
-# We need to find which subdirectory each image is in
-# Let's create a mapping by listing GCS bucket contents
-
 print("🔍 Building image path index from GCS...")
-print("   This may take a few minutes...")
+print("   This may take 2-3 minutes for 112K images...")
+print()
 
-# List all image subdirectories
+from google.cloud import storage
+import time
+
+# Create storage client
 storage_client = storage.Client(project=PROJECT_ID)
-image_subdirs = []
+
+# Build mapping: filename -> GCS path
+filename_to_gcs_path = {}
+
+# List all images in the bucket
 prefix = "00_raw/nih-cxr/images/"
+print(f"📂 Scanning bucket: gs://{BUCKET_NAME}/{prefix}")
 
-# Get subdirectories (images_001, images_002, etc.)
+start_time = time.time()
+total_images = 0
+
+# Get all subdirectories (images_001, images_002, etc.)
 blobs = storage_client.list_blobs(BUCKET_NAME, prefix=prefix, delimiter='/')
-for page in blobs.pages:
-    image_subdirs.extend([p for p in page.prefixes if 'images_' in p])
+subdirs = [p for p in blobs.prefixes if 'images_' in p]
 
-print(f"✓ Found {len(image_subdirs)} image subdirectories")
+print(f"✓ Found {len(subdirs)} image subdirectories")
+print()
 
-# For efficiency, we'll assume the CSV already has correct structure
-# and just update the base path to GCS
+# For each subdirectory, list images
+for subdir_idx, subdir in enumerate(sorted(subdirs), 1):
+    # Each subdir is like: 00_raw/nih-cxr/images/images_001/
+    # Images are in: 00_raw/nih-cxr/images/images_001/images/
+    images_prefix = f"{subdir}images/"
 
-# Alternative: Check if the CSV has full_path column with local paths
-if 'full_path' in train_df.columns:
-    print("\n✓ Using existing full_path from CSV")
-    print("   Converting local paths to GCS paths...")
+    print(f"[{subdir_idx}/{len(subdirs)}] Scanning {subdir}...", end=' ', flush=True)
 
-    def convert_to_gcs_path(local_path):
-        """Convert local path to GCS path."""
-        if pd.isna(local_path):
-            return None
+    # List all .png files in this subdirectory
+    image_blobs = storage_client.list_blobs(
+        BUCKET_NAME,
+        prefix=images_prefix,
+        delimiter='/'
+    )
 
-        # Extract: images_XXX/images/filename.png
-        match = re.search(r'(images_\d+/images/[^/]+\.png)$', str(local_path))
-        if match:
-            rel_path = match.group(1)
-            return f"{GCS_PATHS['raw_images']}{rel_path}"
-        return None
+    count = 0
+    for blob in image_blobs:
+        if blob.name.endswith('.png'):
+            # Extract filename (e.g., "00000001_000.png")
+            filename = blob.name.split('/')[-1]
 
-    train_df['full_path'] = train_df['full_path'].apply(convert_to_gcs_path)
-    val_df['full_path'] = val_df['full_path'].apply(convert_to_gcs_path)
-    test_df['full_path'] = test_df['full_path'].apply(convert_to_gcs_path)
+            # Store GCS path
+            gcs_path = f"gs://{BUCKET_NAME}/{blob.name}"
+            filename_to_gcs_path[filename] = gcs_path
+            count += 1
 
-    # Verify paths
-    sample_path = train_df['full_path'].iloc[0]
-    print(f"\n✓ Sample GCS path: {sample_path}")
+    total_images += count
+    print(f"✓ {count:,} images")
 
-    # Check for missing paths
-    missing_train = train_df['full_path'].isna().sum()
-    missing_val = val_df['full_path'].isna().sum()
-    missing_test = test_df['full_path'].isna().sum()
+elapsed = time.time() - start_time
+print()
+print(f"✅ Index complete: {total_images:,} images in {elapsed:.1f} seconds")
+print()
 
-    if missing_train + missing_val + missing_test > 0:
-        print(f"\n⚠️  Warning: Some paths could not be converted:")
-        print(f"   Train: {missing_train} missing")
-        print(f"   Val: {missing_val} missing")
-        print(f"   Test: {missing_test} missing")
-    else:
-        print(f"\n✅ All {len(train_df) + len(val_df) + len(test_df):,} image paths converted to GCS")
+# Verify we found all expected images
+expected_images = len(train_df) + len(val_df) + len(test_df)
+print(f"📊 Images in CSVs: {expected_images:,}")
+print(f"📊 Images in index: {total_images:,}")
 
+if total_images < expected_images:
+    print(f"⚠️  Warning: Index has fewer images than CSVs!")
+    print(f"   Missing: {expected_images - total_images:,} images")
 else:
-    print("❌ Error: full_path column not found in CSV")
-    raise ValueError("CSV must contain full_path column")
+    print(f"✓ Index covers all CSV images!")
 
 # %% [markdown]
-# ## 9. Sample Data (Optional)
+# ## 9. Build full_path Column
+
+# %%
+print("🔧 Building full_path column for all splits...")
+print()
+
+def build_gcs_path_from_index(filename):
+    """Look up GCS path from filename using the index."""
+    if pd.isna(filename):
+        return None
+
+    gcs_path = filename_to_gcs_path.get(filename)
+
+    if gcs_path is None:
+        # Try with .png extension if not included
+        if not filename.endswith('.png'):
+            gcs_path = filename_to_gcs_path.get(f"{filename}.png")
+
+    return gcs_path
+
+# Build paths for all splits
+print("  Building train paths...", end=' ', flush=True)
+train_df['full_path'] = train_df['Image Index'].apply(build_gcs_path_from_index)
+print("✓")
+
+print("  Building val paths...", end=' ', flush=True)
+val_df['full_path'] = val_df['Image Index'].apply(build_gcs_path_from_index)
+print("✓")
+
+print("  Building test paths...", end=' ', flush=True)
+test_df['full_path'] = test_df['Image Index'].apply(build_gcs_path_from_index)
+print("✓")
+
+print()
+
+# Verify paths
+print("🔍 Verifying image paths...")
+all_dfs = [('train', train_df), ('val', val_df), ('test', test_df)]
+total_missing = 0
+
+for split_name, df in all_dfs:
+    missing_in_split = df['full_path'].isna().sum()
+    total_missing += missing_in_split
+
+    if missing_in_split > 0:
+        print(f"  ❌ {split_name}: {missing_in_split:,} missing paths")
+        # Show a few examples
+        missing_files = df[df['full_path'].isna()]['Image Index'].head(3).tolist()
+        for fname in missing_files:
+            print(f"     - {fname}")
+    else:
+        print(f"  ✓ {split_name}: All {len(df):,} paths found")
+
+if total_missing > 0:
+    print(f"\n⚠️  Total {total_missing:,} images not found in GCS!")
+    print("   This might indicate:")
+    print("   - CSV files from different dataset version")
+    print("   - Incomplete GCS upload")
+    print("   - Incorrect bucket structure")
+    raise ValueError(f"{total_missing} image files not found in gs://{BUCKET_NAME}")
+else:
+    print(f"\n✅ All {len(train_df) + len(val_df) + len(test_df):,} image paths verified!")
+
+    # Show sample path
+    sample_path = train_df['full_path'].iloc[0]
+    print(f"\n📝 Sample GCS path:")
+    print(f"   {sample_path}")
+
+# %% [markdown]
+# ## 10. Sample Data (Optional)
 
 # %%
 if CONFIG['use_sample']:
@@ -438,7 +479,7 @@ val_df = val_df.reset_index(drop=True)
 test_df = test_df.reset_index(drop=True)
 
 # %% [markdown]
-# ## 10. Data Generators with GCS Support
+# ## 11. Data Generators with GCS Support
 #
 # **TensorFlow supports reading directly from GCS using `tf.io.gfile`**
 #
@@ -537,7 +578,7 @@ print(f"  Batch shape: {images.shape}")
 print(f"  Labels shape: {labels.shape}")
 
 # %% [markdown]
-# ## 11. Model Building Functions
+# ## 12. Model Building Functions
 
 # %%
 def build_transfer_model(base_model_class, model_name, config):
@@ -571,7 +612,7 @@ def build_transfer_model(base_model_class, model_name, config):
 print("✓ Model building function defined")
 
 # %% [markdown]
-# ## 12. Training Function with GCS Model Saving
+# ## 13. Training Function with GCS Model Saving
 
 # %%
 def upload_to_gcs(local_path, gcs_path):
@@ -730,7 +771,7 @@ def train_transfer_learning_model(model_class, model_name, train_dataset, val_da
 print("✓ Training function defined")
 
 # %% [markdown]
-# ## 13. Train All Models
+# ## 14. Train All Models
 
 # %%
 import time
@@ -775,7 +816,7 @@ for name in trained_models.keys():
 print(f"\n⏱️  Total time: {total_duration / 60:.1f} minutes ({total_duration / 3600:.2f} hours)")
 
 # %% [markdown]
-# ## 14. Visualize Training History
+# ## 15. Visualize Training History
 
 # %%
 for model_name, history in training_histories.items():
@@ -824,7 +865,7 @@ for model_name, history in training_histories.items():
     plt.show()
 
 # %% [markdown]
-# ## 15. Evaluate on Test Set
+# ## 16. Evaluate on Test Set
 
 # %%
 test_dataset = gcs_compatible_data_generator(
@@ -869,7 +910,7 @@ print("✅ EVALUATION COMPLETE")
 print("=" * 60)
 
 # %% [markdown]
-# ## 16. Summary
+# ## 17. Summary
 
 # %%
 print("\n" + "=" * 60)
