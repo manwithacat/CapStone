@@ -70,18 +70,6 @@ def render_clinical_insights_tab(df, disease_colors=None):
     - Implications for differential diagnosis and model architecture
     """)
 
-    st.markdown("### 3. Model Performance Insights")
-    st.info("""
-    **🚧 To Be Completed After Model Training**
-
-    Key insights from model evaluation will include:
-    - Which diseases are easiest/hardest to detect
-    - Common failure modes and misclassifications
-    - Comparison of AI performance vs. expert radiologists
-    - Trade-offs between sensitivity and specificity
-    - Impact of class imbalance on per-disease performance
-    """)
-
     st.markdown("---")
 
     # -------------------------------------------------------------------------
