@@ -11,7 +11,6 @@ import pandas as pd
 import numpy as np
 from PIL import Image
 from pathlib import Path
-import plotly.graph_objects as go
 import random
 from src.utils.model_loader import (
     load_densenet_model,
@@ -112,7 +111,7 @@ def render_disease_detector_tab(df, disease_colors=None):
             st.error(f"❌ Sample images not found. Please run: `python scripts/create_sample_test_images.py`")
         else:
             # Button to pick random image
-            if st.button("🎲 Pick Random X-Ray", type="primary", use_container_width=True):
+            if st.button("🎲 Pick Random X-Ray", type="primary", width='stretch'):
                 # Load metadata
                 metadata_df = pd.read_csv(metadata_path)
 
@@ -216,35 +215,98 @@ def render_disease_detector_tab(df, disease_colors=None):
     st.subheader("3️⃣ Prediction Results")
 
     if image_to_predict is not None:
-        # Run prediction
-        with st.spinner("🔮 Running AI prediction..."):
-            try:
-                # Preprocess image
-                processed_image = preprocess_image(image_to_predict)
+        # Create a unique key for this image to cache results
+        if isinstance(image_to_predict, Image.Image):
+            import hashlib
+            image_key = hashlib.md5(image_to_predict.tobytes()).hexdigest()
+        else:
+            image_key = str(id(image_to_predict))
 
-                # Get predictions
-                predictions = predict_diseases(model, processed_image)
+        # Check if we've already computed predictions for this image
+        cache_key = f"predictions_{image_key}"
+        is_loading = cache_key not in st.session_state
 
-                # Get top 3 predictions
-                top_3 = get_top_predictions(predictions, top_k=3, threshold=0.0)
+        if is_loading:
+            # Set loading flag to disable all interactive elements
+            st.session_state['is_loading'] = True
 
-                # Generate Grad-CAM for top predictions
-                disease_classes = get_disease_classes()
-                predictions_array = np.array([predictions[disease] for disease in disease_classes])
+            # Run prediction (only once per image)
+            with st.spinner("🔮 Running AI prediction..."):
+                try:
+                    # Preprocess image
+                    processed_image = preprocess_image(image_to_predict)
 
-                gradcam_results = get_top_gradcam_predictions(
-                    model,
-                    processed_image,
-                    predictions_array,
-                    top_k=3
-                )
+                    # Get predictions
+                    predictions = predict_diseases(model, processed_image)
 
-            except Exception as e:
-                st.error(f"❌ Prediction failed: {e}")
-                predictions = None
-                gradcam_results = []
+                    # Get top 3 predictions
+                    top_3 = get_top_predictions(predictions, top_k=3, threshold=0.0)
 
-        if predictions is not None:
+                    # Generate Grad-CAM for top predictions
+                    # Note: disease_classes is defined outside this block for reuse
+                    predictions_array = np.array([predictions[disease] for disease in get_disease_classes()])
+
+                    gradcam_results = get_top_gradcam_predictions(
+                        model,
+                        processed_image,
+                        predictions_array,
+                        top_k=3
+                    )
+
+                    # Cache results in session state (convert to native Python types)
+                    # Important: Don't store TensorFlow tensors - causes MPS issues on Apple Silicon
+                    st.session_state[cache_key] = {
+                        'predictions': {k: float(v) for k, v in predictions.items()},
+                        'top_3': [(disease, float(prob)) for disease, prob in top_3],
+                        'gradcam_results': gradcam_results  # PIL Images are safe to cache
+                    }
+
+                except Exception as e:
+                    st.error(f"❌ Prediction failed: {e}")
+                    st.session_state[cache_key] = {
+                        'predictions': None,
+                        'top_3': [],
+                        'gradcam_results': []
+                    }
+                finally:
+                    # Clear loading flag
+                    st.session_state['is_loading'] = False
+
+        # Retrieve cached results
+        cached_data = st.session_state.get(cache_key, {})
+        predictions = cached_data.get('predictions')
+        top_3 = cached_data.get('top_3', [])
+        gradcam_results = cached_data.get('gradcam_results', [])
+
+        # Check if currently loading
+        is_currently_loading = st.session_state.get('is_loading', False)
+
+        # Get disease classes list (needed for rendering, always available)
+        disease_classes = get_disease_classes()
+
+        if predictions is not None and not is_currently_loading:
+            # Show threshold slider only after predictions are ready and not loading
+            # Slider is completely hidden during load events to prevent any interaction
+            threshold = st.slider(
+                "🎯 Prediction Threshold (for binary classification):",
+                min_value=0.0,
+                max_value=1.0,
+                value=0.35,
+                step=0.05,
+                help="""
+                Probabilities above this threshold are classified as POSITIVE.
+
+                **Default: 0.35** (optimized for screening/diagnostic support)
+                - Lower thresholds (0.3-0.4): Higher sensitivity, fewer missed diseases (screening)
+                - Higher thresholds (0.6-0.7): Higher specificity, fewer false alarms (confirmation)
+
+                For medical screening tools, literature recommends lower thresholds to minimize false negatives.
+                """
+            )
+
+            st.markdown("---")
+
+
             # Display top predictions with Grad-CAM
             st.markdown("### 🏆 Top 3 Most Likely Diseases with Grad-CAM Visualization")
 
@@ -310,9 +372,8 @@ def render_disease_detector_tab(df, disease_colors=None):
                 st.markdown("### ✅ Ground Truth Comparison")
                 st.markdown("**How well did the model perform on this test image?**")
 
-                # Create comparison table
+                # Create comprehensive comparison table (using threshold from above)
                 comparison_data = []
-                threshold = 0.5  # Binary threshold
 
                 for disease in disease_classes:
                     pred_prob = predictions[disease]
@@ -324,13 +385,14 @@ def render_disease_detector_tab(df, disease_colors=None):
                     match_icon = "✅" if match else "❌"
 
                     # Prediction label
-                    pred_label = "POSITIVE" if pred_binary == 1 else "NEGATIVE"
+                    pred_label = "✅ POS" if pred_binary == 1 else "❌ NEG"
                     actual_label = "POSITIVE" if actual == 1 else "NEGATIVE"
 
                     comparison_data.append({
                         "Disease": disease,
-                        "Prediction": f"{pred_label} ({pred_prob*100:.1f}%)",
-                        "Actual": actual_label,
+                        "Confidence (%)": f"{pred_prob*100:.1f}%",
+                        "Binary Prediction": pred_label,
+                        "Ground Truth": actual_label,
                         "Match": match_icon,
                         "Correct": match
                     })
@@ -348,10 +410,20 @@ def render_disease_detector_tab(df, disease_colors=None):
                     delta=f"{correct_count}/{total_count} diseases correct"
                 )
 
-                # Display comparison table
+                # Column explanations
+                st.caption("""
+                **Column Guide:**
+                • **Confidence (%)** = Model's certainty (0-100%)
+                • **Binary Prediction** = Classification using threshold (POS if ≥ threshold, NEG if < threshold)
+                • **Ground Truth** = Actual diagnosis from radiologist
+                • **Match** = Does binary prediction match ground truth?
+                """)
+
+                # Display comparison table (all 14 diseases in full without scrolling)
                 st.dataframe(
-                    comparison_df[["Disease", "Prediction", "Actual", "Match"]],
+                    comparison_df[["Disease", "Confidence (%)", "Binary Prediction", "Ground Truth", "Match"]],
                     width="stretch",
+                    height=525,  # Enough to show all 14 diseases without scrolling
                     hide_index=True
                 )
 
@@ -367,108 +439,10 @@ def render_disease_detector_tab(df, disease_colors=None):
         st.info("👆 Please select an X-ray image to get started (upload or pick random)")
         predictions = None
 
+    # -------------------------------------------------------------------------
+    # DISCLAIMER & TECHNICAL DETAILS
+    # -------------------------------------------------------------------------
     st.markdown("---")
-
-    # -------------------------------------------------------------------------
-    # DETAILED PREDICTIONS TABLE
-    # -------------------------------------------------------------------------
-    st.subheader("4️⃣ Detailed Disease Predictions")
-
-    if predictions is not None:
-        # Create a comprehensive predictions dataframe
-        threshold = st.slider(
-            "Prediction Threshold (for binary classification):",
-            min_value=0.0,
-            max_value=1.0,
-            value=0.5,
-            step=0.05,
-            help="Probabilities above this threshold are classified as POSITIVE"
-        )
-
-        pred_data = []
-        for disease in get_disease_classes():
-            prob = predictions[disease]
-            binary_pred = "✅ POSITIVE" if prob >= threshold else "❌ NEGATIVE"
-
-            pred_data.append({
-                "Disease": disease,
-                "Probability": f"{prob*100:.2f}%",
-                "Prediction": binary_pred,
-                "Confidence": f"{max(prob, 1-prob)*100:.1f}%"
-            })
-
-        pred_df = pd.DataFrame(pred_data)
-
-        # Display with formatting
-        st.dataframe(pred_df, width="stretch", hide_index=True)
-
-        # Probability bar chart
-        st.markdown("### 📊 Probability Distribution")
-
-        fig = go.Figure([
-            go.Bar(
-                x=list(predictions.values()),
-                y=list(predictions.keys()),
-                orientation='h',
-                marker=dict(
-                    color=list(predictions.values()),
-                    colorscale='RdYlGn_r',  # Red for high, green for low
-                    showscale=True,
-                    colorbar=dict(title="Probability")
-                ),
-                text=[f"{v*100:.1f}%" for v in predictions.values()],
-                textposition='auto',
-            )
-        ])
-
-        fig.update_layout(
-            xaxis_title="Probability",
-            yaxis_title="Disease",
-            height=500,
-            showlegend=False
-        )
-
-        st.plotly_chart(fig, use_container_width=True)
-
-    else:
-        st.info("Upload an image to see detailed predictions")
-
-    st.markdown("---")
-
-    # -------------------------------------------------------------------------
-    # CLINICAL INTERPRETATION
-    # -------------------------------------------------------------------------
-    st.subheader("5️⃣ Clinical Interpretation")
-
-    if predictions is not None:
-        # Generate simple interpretation
-        positive_findings = [
-            disease for disease, prob in predictions.items()
-            if prob >= threshold
-        ]
-
-        if positive_findings:
-            st.warning(f"""
-            **⚠️ {len(positive_findings)} Positive Finding(s) Detected**
-
-            The model predicts the following conditions may be present:
-            {', '.join(positive_findings)}
-
-            **Important:**
-            - These are AI-generated predictions and may contain errors
-            - All findings must be validated by a qualified radiologist
-            - False positives and false negatives are possible
-            - Do not make clinical decisions based solely on these predictions
-            """)
-        else:
-            st.success("""
-            **✅ No Positive Findings Above Threshold**
-
-            The model did not detect any conditions with probability above the selected threshold.
-            This does NOT guarantee the absence of disease - radiologist review is still required.
-            """)
-    else:
-        st.info("Upload an image to see clinical interpretation")
 
     st.error("""
     ⚠️ **IMPORTANT DISCLAIMER**
@@ -481,11 +455,6 @@ def render_disease_detector_tab(df, disease_colors=None):
     - False positives and false negatives are possible
     - This tool does NOT replace professional medical judgment
     """)
-
-    # -------------------------------------------------------------------------
-    # TECHNICAL DETAILS
-    # -------------------------------------------------------------------------
-    st.markdown("---")
     with st.expander("ℹ️ How It Works"):
         st.markdown("""
         **Prediction Pipeline:**
@@ -503,7 +472,7 @@ def render_disease_detector_tab(df, disease_colors=None):
         3. **Post-processing**
            - Apply threshold (adjustable slider) for binary predictions
            - Rank diseases by probability
-           - Generate clinical interpretation
+           - Generate Grad-CAM visualizations for top predictions
 
         **Model Architecture: DenseNet121**
         - Pre-trained on ImageNet, fine-tuned on NIH X-rays
