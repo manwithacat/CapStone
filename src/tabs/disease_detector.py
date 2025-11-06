@@ -12,6 +12,7 @@ import numpy as np
 from PIL import Image
 from pathlib import Path
 import plotly.graph_objects as go
+import random
 from src.utils.model_loader import (
     load_densenet_model,
     preprocess_image,
@@ -19,6 +20,10 @@ from src.utils.model_loader import (
     get_disease_classes,
     get_top_predictions,
     format_prediction_text
+)
+from src.utils.gradcam import (
+    generate_gradcam_for_disease,
+    get_top_gradcam_predictions
 )
 
 
@@ -80,34 +85,88 @@ def render_disease_detector_tab(df, disease_colors=None):
     st.markdown("---")
 
     # -------------------------------------------------------------------------
-    # IMAGE UPLOAD
+    # IMAGE SOURCE SELECTION
     # -------------------------------------------------------------------------
-    st.subheader("2️⃣ Upload Chest X-Ray Image")
+    st.subheader("2️⃣ Select X-Ray Source")
 
-    st.markdown("""
-    Upload a chest X-ray image for AI-powered disease prediction.
+    # Create tabs for upload vs random selection
+    upload_tab, random_tab = st.tabs(["📤 Upload Image", "🎲 Pick Random X-Ray"])
 
-    **Requirements:**
-    - File format: PNG, JPG, JPEG
-    - Image type: Frontal-view chest X-ray
-    - Recommended: Grayscale X-ray images
-    - Will be automatically resized to 224x224 for the model
-    """)
-
-    uploaded_file = st.file_uploader(
-        "Choose a chest X-ray image file...",
-        type=['png', 'jpg', 'jpeg'],
-    )
-
-    # Store the image for prediction
+    # Store the image for prediction and ground truth
     image_to_predict = None
+    ground_truth_labels = None
+    image_source = None
 
-    if uploaded_file is not None:
-        try:
-            image_to_predict = Image.open(uploaded_file)
-            st.success(f"✅ Image uploaded: {uploaded_file.name}")
-        except Exception as e:
-            st.error(f"❌ Failed to load image: {e}")
+    with upload_tab:
+        st.markdown("""
+        Upload a chest X-ray image for AI-powered disease prediction.
+
+        **Requirements:**
+        - File format: PNG, JPG, JPEG
+        - Image type: Frontal-view chest X-ray
+        - Recommended: Grayscale X-ray images
+        - Will be automatically resized to 224x224 for the model
+        """)
+
+        uploaded_file = st.file_uploader(
+            "Choose a chest X-ray image file...",
+            type=['png', 'jpg', 'jpeg'],
+        )
+
+        if uploaded_file is not None:
+            try:
+                image_to_predict = Image.open(uploaded_file)
+                image_source = uploaded_file.name
+                st.success(f"✅ Image uploaded: {uploaded_file.name}")
+            except Exception as e:
+                st.error(f"❌ Failed to load image: {e}")
+
+    with random_tab:
+        st.markdown("""
+        Pick a random X-ray from our test set (100 representative images covering all 14 diseases).
+
+        **Benefits:**
+        - See model performance on real test data
+        - Compare predictions with actual ground truth labels
+        - Explore diverse disease presentations
+        """)
+
+        # Load sample test images metadata
+        sample_images_dir = Path("data/sample_test_images")
+        metadata_path = sample_images_dir / "metadata.csv"
+
+        if not metadata_path.exists():
+            st.error(f"❌ Sample images not found. Please run: `python scripts/create_sample_test_images.py`")
+        else:
+            # Button to pick random image
+            if st.button("🎲 Pick Random X-Ray", type="primary"):
+                # Load metadata
+                metadata_df = pd.read_csv(metadata_path)
+
+                # Pick random image
+                random_row = metadata_df.sample(n=1, random_state=None).iloc[0]
+                image_filename = random_row['filename']
+                image_path = sample_images_dir / image_filename
+
+                if image_path.exists():
+                    try:
+                        image_to_predict = Image.open(image_path)
+                        image_source = image_filename
+
+                        # Get ground truth labels
+                        disease_classes = get_disease_classes()
+                        ground_truth_labels = {
+                            disease: int(random_row[disease])
+                            for disease in disease_classes
+                        }
+
+                        st.success(f"✅ Randomly selected: {image_filename}")
+                        st.info(f"📊 Ground truth labels loaded for comparison")
+
+                    except Exception as e:
+                        st.error(f"❌ Failed to load random image: {e}")
+                else:
+                    st.error(f"❌ Image file not found: {image_path}")
 
     st.markdown("---")
 
@@ -117,19 +176,6 @@ def render_disease_detector_tab(df, disease_colors=None):
     st.subheader("3️⃣ Prediction Results")
 
     if image_to_predict is not None:
-        # Display original image
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.markdown("**📷 Original Image**")
-            st.image(image_to_predict, caption="Uploaded X-ray", width="stretch")
-
-        with col2:
-            st.markdown("**🔥 Grad-CAM Heatmap**")
-            st.info("🚧 Grad-CAM visualization coming soon! For now, see predictions below.")
-
-        st.markdown("---")
-
         # Run prediction
         with st.spinner("🔮 Running AI prediction..."):
             try:
@@ -142,28 +188,113 @@ def render_disease_detector_tab(df, disease_colors=None):
                 # Get top 3 predictions
                 top_3 = get_top_predictions(predictions, top_k=3, threshold=0.0)
 
-                # Display top predictions
-                st.markdown("### 🏆 Top 3 Most Likely Diseases")
+                # Generate Grad-CAM for top predictions
+                disease_classes = get_disease_classes()
+                predictions_array = np.array([predictions[disease] for disease in disease_classes])
 
-                for i, (disease, prob) in enumerate(top_3, 1):
-                    # Color based on probability
-                    if prob >= 0.5:
-                        color = "🔴"  # High probability
-                    elif prob >= 0.3:
-                        color = "🟡"  # Medium probability
-                    else:
-                        color = "🟢"  # Low probability
-
-                    st.markdown(f"{color} **{i}. {disease}**: {prob*100:.1f}%")
-
-                st.markdown("---")
+                gradcam_results = get_top_gradcam_predictions(
+                    model,
+                    processed_image,
+                    predictions_array,
+                    top_k=3
+                )
 
             except Exception as e:
                 st.error(f"❌ Prediction failed: {e}")
                 predictions = None
+                gradcam_results = []
+
+        if predictions is not None:
+            # Display top predictions with Grad-CAM
+            st.markdown("### 🏆 Top 3 Most Likely Diseases with Grad-CAM")
+
+            for i, (disease, prob) in enumerate(top_3, 1):
+                # Color based on probability
+                if prob >= 0.5:
+                    color = "🔴"  # High probability
+                elif prob >= 0.3:
+                    color = "🟡"  # Medium probability
+                else:
+                    color = "🟢"  # Low probability
+
+                # Display disease prediction
+                st.markdown(f"{color} **{i}. {disease}**: {prob*100:.1f}%")
+
+                # Display original and Grad-CAM side by side
+                if i <= len(gradcam_results):
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        st.markdown(f"**📷 Original X-Ray**")
+                        st.image(image_to_predict, caption=f"{image_source or 'X-ray'}", width="stretch")
+
+                    with col2:
+                        st.markdown(f"**🔥 Grad-CAM Heatmap for {disease}**")
+                        gradcam_overlay = gradcam_results[i-1]['overlay']
+                        st.image(gradcam_overlay, caption="Regions influencing prediction", width="stretch")
+
+                st.markdown("---")
+
+            # Ground truth comparison (if available)
+            if ground_truth_labels is not None:
+                st.markdown("### ✅ Ground Truth Comparison")
+                st.markdown("**How well did the model perform on this test image?**")
+
+                # Create comparison table
+                comparison_data = []
+                threshold = 0.5  # Binary threshold
+
+                for disease in disease_classes:
+                    pred_prob = predictions[disease]
+                    pred_binary = 1 if pred_prob >= threshold else 0
+                    actual = ground_truth_labels[disease]
+
+                    # Determine if prediction matches ground truth
+                    match = pred_binary == actual
+                    match_icon = "✅" if match else "❌"
+
+                    # Prediction label
+                    pred_label = "POSITIVE" if pred_binary == 1 else "NEGATIVE"
+                    actual_label = "POSITIVE" if actual == 1 else "NEGATIVE"
+
+                    comparison_data.append({
+                        "Disease": disease,
+                        "Prediction": f"{pred_label} ({pred_prob*100:.1f}%)",
+                        "Actual": actual_label,
+                        "Match": match_icon,
+                        "Correct": match
+                    })
+
+                comparison_df = pd.DataFrame(comparison_data)
+
+                # Calculate accuracy on this image
+                correct_count = comparison_df['Correct'].sum()
+                total_count = len(comparison_df)
+                accuracy = (correct_count / total_count) * 100
+
+                st.metric(
+                    label="Prediction Accuracy on This Image",
+                    value=f"{accuracy:.1f}%",
+                    delta=f"{correct_count}/{total_count} diseases correct"
+                )
+
+                # Display comparison table
+                st.dataframe(
+                    comparison_df[["Disease", "Prediction", "Actual", "Match"]],
+                    width="stretch",
+                    hide_index=True
+                )
+
+                # Summary
+                if accuracy == 100:
+                    st.success("🎉 Perfect predictions! All diseases correctly identified.")
+                elif accuracy >= 80:
+                    st.info(f"👍 Good performance! {correct_count}/{total_count} diseases correct.")
+                else:
+                    st.warning(f"⚠️ Room for improvement. {correct_count}/{total_count} diseases correct.")
 
     else:
-        st.info("👆 Please upload a chest X-ray image to get started")
+        st.info("👆 Please select an X-ray image to get started (upload or pick random)")
         predictions = None
 
     st.markdown("---")
