@@ -160,7 +160,6 @@ def render_disease_detector_tab(df, disease_colors=None):
                     ground_truth_labels = st.session_state.random_ground_truth
                 else:
                     # Show placeholder
-                    st.info("👆 Click the button above to pick a random X-ray from the test set")
                     st.markdown("""
                     <div style='
                         border: 2px dashed #ccc;
@@ -171,7 +170,8 @@ def render_disease_detector_tab(df, disease_colors=None):
                         color: #6c757d;
                     '>
                         <p style='font-size: 3rem; margin: 0;'>🖼️</p>
-                        <p style='font-size: 1.2rem; margin-top: 10px;'>X-Ray will appear here</p>
+                        <p style='font-size: 1.1rem; margin-top: 10px; margin-bottom: 5px;'>X-Ray will appear here</p>
+                        <p style='font-size: 0.9rem; color: #999;'>Click the button above to pick a random X-ray</p>
                     </div>
                     """, unsafe_allow_html=True)
 
