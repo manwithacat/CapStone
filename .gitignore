@@ -240,8 +240,10 @@ jupyter_notebooks/**/*.py
 
 # Jupyter notebook checkpoints already excluded above (.ipynb_checkpoints/)
 
-# Colab OAuth credentials
+# Colab OAuth credentials (exclude actual credentials, allow .example files)
 .colab/
+colab/client_secrets.json
+!colab/client_secrets.json.example
 
 # ============================================================================
 # Platform-Specific Directories (New Organization)
@@ -266,3 +268,7 @@ kaggle/legacy/
 
 # nbpush activity logs (LLM-optimized, keep in repo)
 # .logs/ intentionally not ignored - these logs are for Claude to track activity
+
+# Colab results (downloaded from GCS)
+colab/results/**/*.keras
+colab/results/**/*.h5
