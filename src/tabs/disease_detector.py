@@ -422,6 +422,44 @@ def render_disease_detector_tab(df, disease_colors=None):
         - Suitable for Streamlit Cloud deployment
         """)
 
+    with st.expander("🔥 What is Grad-CAM?"):
+        st.markdown("""
+        **Grad-CAM (Gradient-weighted Class Activation Mapping)** is an explainable AI technique that helps us understand
+        *what* the model is "looking at" when making predictions.
+
+        **How it works:**
+
+        1. **Identify Important Regions**
+           - The model processes the X-ray through multiple layers
+           - Grad-CAM analyzes which parts of the image activate the final prediction
+           - It computes gradients flowing back to the last convolutional layer
+
+        2. **Generate Heatmap**
+           - Red/yellow regions = areas that strongly influenced the prediction
+           - Blue/purple regions = areas with less influence
+           - The brighter the color, the more important that region
+
+        3. **Clinical Interpretation**
+           - Radiologists can verify if the model is focusing on clinically relevant areas
+           - Helps identify if the model has learned correct diagnostic patterns
+           - Reveals potential biases or spurious correlations
+
+        **Why it matters for medical AI:**
+
+        - **Trust & Transparency**: Radiologists can see the model's "reasoning"
+        - **Error Detection**: Spot cases where the model focuses on wrong regions
+        - **Educational Value**: Learn which image features correlate with diseases
+        - **Regulatory Compliance**: Explainability is often required for clinical AI
+
+        **Example:**
+        - For pneumonia, Grad-CAM should highlight areas of lung consolidation
+        - For cardiomegaly, it should focus on the heart's borders and size
+        - If it highlights medical devices instead of pathology, that's a red flag!
+
+        **Reference:**
+        - Selvaraju et al., "Grad-CAM: Visual Explanations from Deep Networks via Gradient-based Localization" (ICCV 2017)
+        """)
+
     st.markdown("---")
 
     st.info("""
