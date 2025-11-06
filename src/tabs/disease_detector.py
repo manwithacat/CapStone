@@ -38,38 +38,8 @@ def render_disease_detector_tab(df, disease_colors=None):
     st.header("🔍 AI-Powered Disease Detection")
 
     st.markdown("""
-    Upload a chest X-ray image to receive AI-powered disease predictions with
+    Upload a chest X-ray image or pick a random test image to receive AI-powered disease predictions with
     visual explanations showing which regions of the image influenced the model's decisions.
-    """)
-
-    # Disclaimer
-    st.error("""
-    ⚠️ **IMPORTANT DISCLAIMER**
-
-    This tool is for **research and educational purposes ONLY**. It is NOT approved for clinical use.
-
-    - Do NOT use for actual medical diagnosis
-    - Do NOT upload real patient data without proper authorization
-    - All predictions must be reviewed by qualified radiologists
-    - False positives and false negatives are possible
-    - This tool does NOT replace professional medical judgment
-    """)
-
-    st.markdown("---")
-
-    # -------------------------------------------------------------------------
-    # MODEL SELECTION
-    # -------------------------------------------------------------------------
-    st.subheader("1️⃣ Select Model")
-
-    st.success("""
-    **✅ Model Ready**
-
-    DenseNet121 model is now available for predictions!
-    - Test AUC: 0.7529 (best performing model)
-    - Parameters: 7.6M (parameter efficient)
-    - Trained on NVIDIA A100 GPU
-    - 14 disease classes supported
     """)
 
     # Load DenseNet121 model
@@ -77,20 +47,16 @@ def render_disease_detector_tab(df, disease_colors=None):
 
     try:
         model = load_densenet_model(model_path)
-        st.info("✅ DenseNet121 model loaded successfully")
     except Exception as e:
         st.error(f"❌ Failed to load model: {e}")
         st.stop()
 
-    st.markdown("---")
-
     # -------------------------------------------------------------------------
     # IMAGE SOURCE SELECTION
     # -------------------------------------------------------------------------
-    st.subheader("2️⃣ Select X-Ray Source")
 
-    # Create tabs for upload vs random selection
-    upload_tab, random_tab = st.tabs(["📤 Upload Image", "🎲 Pick Random X-Ray"])
+    # Create tabs for upload vs random selection (random first)
+    random_tab, upload_tab = st.tabs(["🎲 Pick Random X-Ray", "📤 Upload Image"])
 
     # Store the image for prediction and ground truth
     image_to_predict = None
@@ -103,6 +69,7 @@ def render_disease_detector_tab(df, disease_colors=None):
 
         **Requirements:**
         - File format: PNG, JPG, JPEG
+        - Maximum file size: 10 MB
         - Image type: Frontal-view chest X-ray
         - Recommended: Grayscale X-ray images
         - Will be automatically resized to 224x224 for the model
@@ -111,15 +78,21 @@ def render_disease_detector_tab(df, disease_colors=None):
         uploaded_file = st.file_uploader(
             "Choose a chest X-ray image file...",
             type=['png', 'jpg', 'jpeg'],
+            help="Upload a chest X-ray image (PNG, JPG, or JPEG). Maximum file size: 10 MB",
         )
 
         if uploaded_file is not None:
-            try:
-                image_to_predict = Image.open(uploaded_file)
-                image_source = uploaded_file.name
-                st.success(f"✅ Image uploaded: {uploaded_file.name}")
-            except Exception as e:
-                st.error(f"❌ Failed to load image: {e}")
+            # Check file size (10 MB limit)
+            file_size_mb = uploaded_file.size / (1024 * 1024)
+            if file_size_mb > 10:
+                st.error(f"❌ File too large ({file_size_mb:.1f} MB). Maximum file size is 10 MB.")
+            else:
+                try:
+                    image_to_predict = Image.open(uploaded_file)
+                    image_source = uploaded_file.name
+                    st.success(f"✅ Image uploaded: {uploaded_file.name} ({file_size_mb:.2f} MB)")
+                except Exception as e:
+                    st.error(f"❌ Failed to load image: {e}")
 
     with random_tab:
         st.markdown("""
@@ -400,9 +373,16 @@ def render_disease_detector_tab(df, disease_colors=None):
     else:
         st.info("Upload an image to see clinical interpretation")
 
-    st.warning("""
-    **⚠️ Disclaimer:** All AI predictions must be validated by qualified healthcare professionals.
-    This tool is designed to support, not replace, clinical decision-making.
+    st.error("""
+    ⚠️ **IMPORTANT DISCLAIMER**
+
+    This tool is for **research and educational purposes ONLY**. It is NOT approved for clinical use.
+
+    - Do NOT use for actual medical diagnosis
+    - Do NOT upload real patient data without proper authorization
+    - All predictions must be reviewed by qualified radiologists
+    - False positives and false negatives are possible
+    - This tool does NOT replace professional medical judgment
     """)
 
     # -------------------------------------------------------------------------
