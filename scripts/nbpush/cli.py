@@ -3,11 +3,13 @@ CLI for pushing notebooks to cloud GPU services.
 
 Usage:
     nbpush list                          # List all notebooks
-    nbpush list --platform kaggle        # List Kaggle notebooks only
-    nbpush push <notebook> --service kaggle   # Push to Kaggle
-    nbpush push <notebook> --service colab    # Push to Colab
+    nbpush list --platform colab         # List Colab notebooks only
+    nbpush push <notebook>               # Push to Colab (default)
+    nbpush push <notebook> --service colab    # Push to Colab (explicit)
     nbpush activity                      # Show recent activity
     nbpush activity --summary            # Show activity summary
+
+Note: Kaggle support temporarily disabled. Defaulting to Colab.
 """
 
 import sys
@@ -88,7 +90,7 @@ def extract_notebook_config(notebook_path: Path) -> Dict[str, Any]:
 
 app = typer.Typer(
     name="nbpush",
-    help="Push notebooks to cloud GPU services (Kaggle/Colab)",
+    help="Push notebooks to cloud GPU services (Colab)",
     add_completion=False
 )
 
@@ -344,21 +346,26 @@ def select(
 
     # Step 1: Select service (if not provided)
     if service is None:
-        service = questionary.select(
-            "Select cloud service:",
-            choices=[
-                questionary.Choice("Kaggle (T4 GPU, 9hr limit)", value="kaggle"),
-                questionary.Choice("Colab (A100 GPU, 24hr limit)", value="colab"),
-            ],
-            style=questionary.Style([
-                ('selected', 'bold cyan'),
-                ('pointer', 'bold cyan'),
-            ])
-        ).ask()
+        # Default to Colab (Kaggle disabled for now)
+        service = "colab"
+        console.print("[cyan]Defaulting to Colab (A100 GPU, 24hr limit)[/cyan]")
 
-        if service is None:  # User cancelled
-            console.print("[yellow]Cancelled[/yellow]")
-            return
+        # Uncomment to re-enable Kaggle selection:
+        # service = questionary.select(
+        #     "Select cloud service:",
+        #     choices=[
+        #         questionary.Choice("Colab (A100 GPU, 24hr limit)", value="colab"),
+        #         questionary.Choice("Kaggle (T4 GPU, 9hr limit)", value="kaggle"),
+        #     ],
+        #     style=questionary.Style([
+        #         ('selected', 'bold cyan'),
+        #         ('pointer', 'bold cyan'),
+        #     ])
+        # ).ask()
+        #
+        # if service is None:  # User cancelled
+        #     console.print("[yellow]Cancelled[/yellow]")
+        #     return
 
     # Step 2: Get compatible notebooks for selected service
     # For Kaggle, only show notebooks from kaggle/kernels/
