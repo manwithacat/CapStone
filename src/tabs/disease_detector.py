@@ -143,8 +143,8 @@ def render_disease_detector_tab(df, disease_colors=None):
                 else:
                     st.error(f"❌ Image file not found: {image_path}")
 
-            # Display area with 2/3 and 1/3 columns
-            col_image, col_info = st.columns([2, 1])
+            # Display area with equal columns (50% smaller than before)
+            col_image, col_info = st.columns([1, 1])
 
             with col_image:
                 if 'random_image' in st.session_state:
@@ -247,14 +247,6 @@ def render_disease_detector_tab(df, disease_colors=None):
         if predictions is not None:
             # Display top predictions with Grad-CAM
             st.markdown("### 🏆 Top 3 Most Likely Diseases with Grad-CAM Visualization")
-
-            # Show original X-ray once at the top
-            st.markdown("**📷 Original X-Ray**")
-            col_orig, col_spacer = st.columns([2, 1])
-            with col_orig:
-                st.image(image_to_predict, caption=f"{image_source or 'X-ray'}", width="stretch")
-
-            st.markdown("---")
 
             # Display top 3 predictions with indicators
             st.markdown("**Top 3 Predictions:**")
