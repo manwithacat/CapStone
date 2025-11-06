@@ -292,15 +292,24 @@ def render_disease_detector_tab(df, disease_colors=None):
             st.markdown("**🔥 Grad-CAM Heatmap Comparison**")
             st.caption("Compare which regions influenced each disease prediction (red/yellow = high influence)")
 
-            if len(gradcam_results) >= 3:
-                gradcam_cols = st.columns(3)
-                for i, (disease, prob) in enumerate(top_3):
+            if len(gradcam_results) > 0:
+                # Display available Grad-CAMs (may be less than 3 if generation failed for some)
+                num_cols = min(len(gradcam_results), 3)
+                gradcam_cols = st.columns(num_cols)
+
+                for i, result in enumerate(gradcam_results[:3]):
                     with gradcam_cols[i]:
-                        st.markdown(f"**{disease}**")
-                        gradcam_overlay = gradcam_results[i]['overlay']
-                        st.image(gradcam_overlay, caption=f"Focus areas for {disease}", width="stretch")
+                        # Get disease name from top_3 predictions
+                        disease_name = top_3[i][0] if i < len(top_3) else f"Disease {i+1}"
+                        st.markdown(f"**{disease_name}**")
+                        gradcam_overlay = result['overlay']
+                        st.image(gradcam_overlay, caption=f"Focus areas for {disease_name}", width="stretch")
+
+                # Show info if some Grad-CAMs failed to generate
+                if len(gradcam_results) < 3:
+                    st.info(f"ℹ️ Generated {len(gradcam_results)} of 3 Grad-CAM visualizations")
             else:
-                st.warning("⚠️ Grad-CAM visualization unavailable for some predictions")
+                st.warning("⚠️ Grad-CAM visualization unavailable. This may occur due to model architecture constraints.")
 
             st.markdown("---")
 

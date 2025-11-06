@@ -170,6 +170,8 @@ def get_top_gradcam_predictions(model, img_array, predictions, top_k=3):
     top_indices = np.argsort(predictions)[-top_k:][::-1]
 
     results = []
+    errors = []
+
     for idx in top_indices:
         try:
             heatmap, overlay = generate_gradcam_for_disease(
@@ -185,6 +187,12 @@ def get_top_gradcam_predictions(model, img_array, predictions, top_k=3):
                 'overlay': overlay
             })
         except Exception as e:
-            print(f"Error generating Grad-CAM for index {idx}: {e}")
+            error_msg = f"Error generating Grad-CAM for disease index {idx}: {str(e)}"
+            print(error_msg)  # Log to console
+            errors.append(error_msg)
+
+    # Log summary if there were errors
+    if errors:
+        print(f"Grad-CAM generation completed with {len(errors)} error(s). Generated {len(results)}/{top_k} visualizations.")
 
     return results
