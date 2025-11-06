@@ -8,6 +8,18 @@ Grad-CAM visualizations.
 
 import streamlit as st
 import pandas as pd
+import numpy as np
+from PIL import Image
+from pathlib import Path
+import plotly.graph_objects as go
+from src.utils.model_loader import (
+    load_densenet_model,
+    preprocess_image,
+    predict_diseases,
+    get_disease_classes,
+    get_top_predictions,
+    format_prediction_text
+)
 
 
 def render_disease_detector_tab(df, disease_colors=None):
@@ -45,28 +57,25 @@ def render_disease_detector_tab(df, disease_colors=None):
     # -------------------------------------------------------------------------
     st.subheader("1️⃣ Select Model")
 
-    st.info("""
-    **🚧 Coming Soon**
+    st.success("""
+    **✅ Model Ready**
 
-    Once models are trained (Notebooks 05-07), you'll be able to select from:
-    - Baseline models (Logistic Regression, Random Forest, XGBoost)
-    - Custom CNN
-    - Transfer learning models (ResNet50, DenseNet121, EfficientNetB3)
+    DenseNet121 model is now available for predictions!
+    - Test AUC: 0.7529 (best performing model)
+    - Parameters: 7.6M (parameter efficient)
+    - Trained on NVIDIA A100 GPU
+    - 14 disease classes supported
     """)
 
-    model_options = [
-        "ResNet50 (Best Performance)",
-        "DenseNet121 (Medical Imaging Standard)",
-        "EfficientNetB3 (Balanced Speed/Accuracy)",
-        "Custom CNN",
-        "XGBoost Baseline"
-    ]
+    # Load DenseNet121 model
+    model_path = "models/saved_models/densenet121_best.keras"
 
-    _selected_model = st.selectbox(
-        "Choose a model for prediction:",
-        model_options,
-        disabled=True  # Disabled until models are trained
-    )
+    try:
+        model = load_densenet_model(model_path)
+        st.info("✅ DenseNet121 model loaded successfully")
+    except Exception as e:
+        st.error(f"❌ Failed to load model: {e}")
+        st.stop()
 
     st.markdown("---")
 
@@ -75,92 +84,153 @@ def render_disease_detector_tab(df, disease_colors=None):
     # -------------------------------------------------------------------------
     st.subheader("2️⃣ Upload Chest X-Ray Image")
 
-    st.info("""
-    **🚧 Coming Soon**
-
-    Upload functionality will be enabled once models are trained.
+    st.markdown("""
+    Upload a chest X-ray image for AI-powered disease prediction.
 
     **Requirements:**
-    - File format: PNG, JPG, JPEG, DICOM
+    - File format: PNG, JPG, JPEG
     - Image type: Frontal-view chest X-ray
-    - Recommended resolution: 1024x1024 or higher
-    - Grayscale or RGB accepted (will be converted to grayscale)
+    - Recommended: Grayscale X-ray images
+    - Will be automatically resized to 224x224 for the model
     """)
 
-    _uploaded_file = st.file_uploader(
+    uploaded_file = st.file_uploader(
         "Choose a chest X-ray image file...",
-        type=['png', 'jpg', 'jpeg', 'dcm'],
-        disabled=True  # Disabled until models are trained
+        type=['png', 'jpg', 'jpeg'],
     )
 
-    # Alternatively, load from dataset
-    st.markdown("**OR select a sample from the dataset:**")
+    # Store the image for prediction
+    image_to_predict = None
 
-    use_sample = st.checkbox("Use sample image from dataset", disabled=True)
-
-    if use_sample:
-        _sample_idx = st.slider(
-            "Select sample image index:",
-            0, min(100, len(df)-1),
-            0,
-            disabled=True
-        )
+    if uploaded_file is not None:
+        try:
+            image_to_predict = Image.open(uploaded_file)
+            st.success(f"✅ Image uploaded: {uploaded_file.name}")
+        except Exception as e:
+            st.error(f"❌ Failed to load image: {e}")
 
     st.markdown("---")
 
     # -------------------------------------------------------------------------
-    # PREDICTION RESULTS (PLACEHOLDER)
+    # PREDICTION RESULTS
     # -------------------------------------------------------------------------
     st.subheader("3️⃣ Prediction Results")
 
-    st.info("""
-    **🚧 Coming Soon**
+    if image_to_predict is not None:
+        # Display original image
+        col1, col2 = st.columns(2)
 
-    Prediction results will be displayed here including:
-    - Predicted disease probabilities for all 14 classes
-    - Confidence scores
-    - Binary predictions (disease present/absent)
-    - Top-K most likely diseases
-    """)
+        with col1:
+            st.markdown("**📷 Original Image**")
+            st.image(image_to_predict, caption="Uploaded X-ray", width="stretch")
 
-    # Example placeholder visualization
-    col1, col2 = st.columns(2)
+        with col2:
+            st.markdown("**🔥 Grad-CAM Heatmap**")
+            st.info("🚧 Grad-CAM visualization coming soon! For now, see predictions below.")
 
-    with col1:
-        st.markdown("**📷 Original Image**")
-        st.info("Uploaded X-ray image will be displayed here")
+        st.markdown("---")
 
-    with col2:
-        st.markdown("**🔥 Grad-CAM Heatmap**")
-        st.info("Grad-CAM visualization highlighting important regions will be displayed here")
+        # Run prediction
+        with st.spinner("🔮 Running AI prediction..."):
+            try:
+                # Preprocess image
+                processed_image = preprocess_image(image_to_predict)
+
+                # Get predictions
+                predictions = predict_diseases(model, processed_image)
+
+                # Get top 3 predictions
+                top_3 = get_top_predictions(predictions, top_k=3, threshold=0.0)
+
+                # Display top predictions
+                st.markdown("### 🏆 Top 3 Most Likely Diseases")
+
+                for i, (disease, prob) in enumerate(top_3, 1):
+                    # Color based on probability
+                    if prob >= 0.5:
+                        color = "🔴"  # High probability
+                    elif prob >= 0.3:
+                        color = "🟡"  # Medium probability
+                    else:
+                        color = "🟢"  # Low probability
+
+                    st.markdown(f"{color} **{i}. {disease}**: {prob*100:.1f}%")
+
+                st.markdown("---")
+
+            except Exception as e:
+                st.error(f"❌ Prediction failed: {e}")
+                predictions = None
+
+    else:
+        st.info("👆 Please upload a chest X-ray image to get started")
+        predictions = None
 
     st.markdown("---")
 
     # -------------------------------------------------------------------------
-    # PREDICTED DISEASES TABLE
+    # DETAILED PREDICTIONS TABLE
     # -------------------------------------------------------------------------
     st.subheader("4️⃣ Detailed Disease Predictions")
 
-    st.info("""
-    **🚧 Coming Soon**
+    if predictions is not None:
+        # Create a comprehensive predictions dataframe
+        threshold = st.slider(
+            "Prediction Threshold (for binary classification):",
+            min_value=0.0,
+            max_value=1.0,
+            value=0.5,
+            step=0.05,
+            help="Probabilities above this threshold are classified as POSITIVE"
+        )
 
-    A detailed table of predictions for all disease classes will be displayed here.
-    """)
+        pred_data = []
+        for disease in get_disease_classes():
+            prob = predictions[disease]
+            binary_pred = "✅ POSITIVE" if prob >= threshold else "❌ NEGATIVE"
 
-    # Example structure
-    example_predictions = {
-        "Disease": [
-            "Atelectasis", "Cardiomegaly", "Effusion", "Infiltration",
-            "Mass", "Nodule", "Pneumonia", "Pneumothorax",
-            "Consolidation", "Edema", "Emphysema", "Fibrosis",
-            "Pleural Thickening", "Hernia"
-        ],
-        "Probability": ["-"] * 14,
-        "Prediction": ["-"] * 14,
-        "Confidence": ["-"] * 14
-    }
+            pred_data.append({
+                "Disease": disease,
+                "Probability": f"{prob*100:.2f}%",
+                "Prediction": binary_pred,
+                "Confidence": f"{max(prob, 1-prob)*100:.1f}%"
+            })
 
-    st.dataframe(pd.DataFrame(example_predictions), width="stretch")
+        pred_df = pd.DataFrame(pred_data)
+
+        # Display with formatting
+        st.dataframe(pred_df, width="stretch", hide_index=True)
+
+        # Probability bar chart
+        st.markdown("### 📊 Probability Distribution")
+
+        fig = go.Figure([
+            go.Bar(
+                x=list(predictions.values()),
+                y=list(predictions.keys()),
+                orientation='h',
+                marker=dict(
+                    color=list(predictions.values()),
+                    colorscale='RdYlGn_r',  # Red for high, green for low
+                    showscale=True,
+                    colorbar=dict(title="Probability")
+                ),
+                text=[f"{v*100:.1f}%" for v in predictions.values()],
+                textposition='auto',
+            )
+        ])
+
+        fig.update_layout(
+            xaxis_title="Probability",
+            yaxis_title="Disease",
+            height=500,
+            showlegend=False
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    else:
+        st.info("Upload an image to see detailed predictions")
 
     st.markdown("---")
 
@@ -169,19 +239,38 @@ def render_disease_detector_tab(df, disease_colors=None):
     # -------------------------------------------------------------------------
     st.subheader("5️⃣ Clinical Interpretation")
 
-    st.info("""
-    **🚧 Coming Soon**
+    if predictions is not None:
+        # Generate simple interpretation
+        positive_findings = [
+            disease for disease, prob in predictions.items()
+            if prob >= threshold
+        ]
 
-    AI-generated clinical interpretation and recommendations will be displayed here:
-    - Summary of detected conditions
-    - Severity assessment
-    - Recommended follow-up actions
-    - Similar cases from training data
-    - Differential diagnosis considerations
-    """)
+        if positive_findings:
+            st.warning(f"""
+            **⚠️ {len(positive_findings)} Positive Finding(s) Detected**
+
+            The model predicts the following conditions may be present:
+            {', '.join(positive_findings)}
+
+            **Important:**
+            - These are AI-generated predictions and may contain errors
+            - All findings must be validated by a qualified radiologist
+            - False positives and false negatives are possible
+            - Do not make clinical decisions based solely on these predictions
+            """)
+        else:
+            st.success("""
+            **✅ No Positive Findings Above Threshold**
+
+            The model did not detect any conditions with probability above the selected threshold.
+            This does NOT guarantee the absence of disease - radiologist review is still required.
+            """)
+    else:
+        st.info("Upload an image to see clinical interpretation")
 
     st.warning("""
-    **⚠️ Reminder:** All AI predictions must be validated by qualified healthcare professionals.
+    **⚠️ Disclaimer:** All AI predictions must be validated by qualified healthcare professionals.
     This tool is designed to support, not replace, clinical decision-making.
     """)
 
@@ -194,47 +283,37 @@ def render_disease_detector_tab(df, disease_colors=None):
         **Prediction Pipeline:**
 
         1. **Image Preprocessing**
-           - Resize to 224x224 pixels (for transfer learning models)
-           - Normalize pixel values (0-1 range)
-           - Apply same preprocessing as training data
+           - Resize to 224x224 pixels
+           - Convert to RGB (3 channels)
+           - Apply ImageNet normalization (mean/std)
 
         2. **Model Inference**
-           - Forward pass through deep neural network
+           - Forward pass through DenseNet121
            - Multi-label binary classification (14 outputs)
            - Sigmoid activation for independent disease probabilities
 
-        3. **Grad-CAM Generation**
-           - Gradient-weighted Class Activation Mapping
-           - Highlights image regions that contributed most to prediction
-           - Separate heatmap for each predicted disease
-
-        4. **Post-processing**
-           - Apply threshold (typically 0.5) for binary predictions
+        3. **Post-processing**
+           - Apply threshold (adjustable slider) for binary predictions
            - Rank diseases by probability
            - Generate clinical interpretation
 
-        **Model Architecture (Transfer Learning):**
-        - Pre-trained CNN backbone (ImageNet weights)
-        - Fine-tuned on chest X-ray dataset
-        - Custom classification head for 14 diseases
-        - Trained with binary cross-entropy loss
-        - Class weights to handle imbalance
+        **Model Architecture: DenseNet121**
+        - Pre-trained on ImageNet, fine-tuned on NIH X-rays
+        - 7.6M parameters (parameter efficient)
+        - Two-stage training (feature extraction + fine-tuning)
+        - Test AUC: 0.7529 (best performing model)
+        - Trained on NVIDIA A100 GPU (80GB)
 
-        **Performance Considerations:**
-        - Inference time: ~100-200ms per image (GPU)
-        - Grad-CAM generation: ~50ms additional
-        - Batch processing: Up to 100 images/second
+        **Performance:**
+        - Inference time: ~2-3 seconds per image (CPU)
+        - Model size: 37 MB
+        - Memory footprint: ~500 MB
+        - Suitable for Streamlit Cloud deployment
         """)
 
-    # -------------------------------------------------------------------------
-    # SAMPLE PREDICTIONS GALLERY
-    # -------------------------------------------------------------------------
     st.markdown("---")
-    with st.expander("📸 Sample Predictions Gallery"):
-        st.info("""
-        **🚧 Coming Soon**
 
-        A gallery of sample predictions from the test set will be displayed here,
-        showing correct predictions, false positives, and false negatives for
-        educational purposes.
-        """)
+    st.info("""
+    💡 **Tip:** Try uploading different chest X-ray images to see how the model performs!
+    The model was trained on 78,566 images from 21,563 patients and tested on 16,491 images.
+    """)
