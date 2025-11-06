@@ -246,34 +246,63 @@ def render_disease_detector_tab(df, disease_colors=None):
 
         if predictions is not None:
             # Display top predictions with Grad-CAM
-            st.markdown("### 🏆 Top 3 Most Likely Diseases with Grad-CAM")
+            st.markdown("### 🏆 Top 3 Most Likely Diseases with Grad-CAM Visualization")
 
-            for i, (disease, prob) in enumerate(top_3, 1):
-                # Color based on probability
-                if prob >= 0.5:
-                    color = "🔴"  # High probability
-                elif prob >= 0.3:
-                    color = "🟡"  # Medium probability
-                else:
-                    color = "🟢"  # Low probability
+            # Show original X-ray once at the top
+            st.markdown("**📷 Original X-Ray**")
+            col_orig, col_spacer = st.columns([2, 1])
+            with col_orig:
+                st.image(image_to_predict, caption=f"{image_source or 'X-ray'}", width="stretch")
 
-                # Display disease prediction
-                st.markdown(f"{color} **{i}. {disease}**: {prob*100:.1f}%")
+            st.markdown("---")
 
-                # Display original and Grad-CAM side by side
-                if i <= len(gradcam_results):
-                    col1, col2 = st.columns(2)
+            # Display top 3 predictions with indicators
+            st.markdown("**Top 3 Predictions:**")
+            pred_cols = st.columns(3)
+            for i, (disease, prob) in enumerate(top_3):
+                with pred_cols[i]:
+                    # Color based on probability
+                    if prob >= 0.5:
+                        color = "🔴"  # High probability
+                        bgcolor = "#ffe6e6"
+                    elif prob >= 0.3:
+                        color = "🟡"  # Medium probability
+                        bgcolor = "#fff9e6"
+                    else:
+                        color = "🟢"  # Low probability
+                        bgcolor = "#e6ffe6"
 
-                    with col1:
-                        st.markdown(f"**📷 Original X-Ray**")
-                        st.image(image_to_predict, caption=f"{image_source or 'X-ray'}", width="stretch")
+                    st.markdown(f"""
+                    <div style='
+                        background-color: {bgcolor};
+                        padding: 15px;
+                        border-radius: 10px;
+                        text-align: center;
+                        border: 2px solid #ddd;
+                    '>
+                        <p style='font-size: 1.5rem; margin: 0;'>{color}</p>
+                        <p style='font-size: 1.1rem; font-weight: bold; margin: 5px 0;'>{disease}</p>
+                        <p style='font-size: 1.3rem; font-weight: bold; color: #333; margin: 0;'>{prob*100:.1f}%</p>
+                    </div>
+                    """, unsafe_allow_html=True)
 
-                    with col2:
-                        st.markdown(f"**🔥 Grad-CAM Heatmap for {disease}**")
-                        gradcam_overlay = gradcam_results[i-1]['overlay']
-                        st.image(gradcam_overlay, caption="Regions influencing prediction", width="stretch")
+            st.markdown("---")
 
-                st.markdown("---")
+            # Display Grad-CAM heatmaps for comparison
+            st.markdown("**🔥 Grad-CAM Heatmap Comparison**")
+            st.caption("Compare which regions influenced each disease prediction (red/yellow = high influence)")
+
+            if len(gradcam_results) >= 3:
+                gradcam_cols = st.columns(3)
+                for i, (disease, prob) in enumerate(top_3):
+                    with gradcam_cols[i]:
+                        st.markdown(f"**{disease}**")
+                        gradcam_overlay = gradcam_results[i]['overlay']
+                        st.image(gradcam_overlay, caption=f"Focus areas for {disease}", width="stretch")
+            else:
+                st.warning("⚠️ Grad-CAM visualization unavailable for some predictions")
+
+            st.markdown("---")
 
             # Ground truth comparison (if available)
             if ground_truth_labels is not None:
