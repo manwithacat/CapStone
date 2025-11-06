@@ -112,7 +112,7 @@ def render_disease_detector_tab(df, disease_colors=None):
             st.error(f"❌ Sample images not found. Please run: `python scripts/create_sample_test_images.py`")
         else:
             # Button to pick random image
-            if st.button("🎲 Pick Random X-Ray", type="primary"):
+            if st.button("🎲 Pick Random X-Ray", type="primary", use_container_width=True):
                 # Load metadata
                 metadata_df = pd.read_csv(metadata_path)
 
@@ -133,13 +133,80 @@ def render_disease_detector_tab(df, disease_colors=None):
                             for disease in disease_classes
                         }
 
-                        st.success(f"✅ Randomly selected: {image_filename}")
-                        st.info(f"📊 Ground truth labels loaded for comparison")
+                        # Store in session state for persistent display
+                        st.session_state.random_image = image_to_predict
+                        st.session_state.random_filename = image_filename
+                        st.session_state.random_ground_truth = ground_truth_labels
 
                     except Exception as e:
                         st.error(f"❌ Failed to load random image: {e}")
                 else:
                     st.error(f"❌ Image file not found: {image_path}")
+
+            # Display area with 2/3 and 1/3 columns
+            col_image, col_info = st.columns([2, 1])
+
+            with col_image:
+                if 'random_image' in st.session_state:
+                    # Show the selected image
+                    st.image(
+                        st.session_state.random_image,
+                        caption=f"Selected: {st.session_state.random_filename}",
+                        width="stretch"
+                    )
+                    # Set for prediction
+                    image_to_predict = st.session_state.random_image
+                    image_source = st.session_state.random_filename
+                    ground_truth_labels = st.session_state.random_ground_truth
+                else:
+                    # Show placeholder
+                    st.info("👆 Click the button above to pick a random X-ray from the test set")
+                    st.markdown("""
+                    <div style='
+                        border: 2px dashed #ccc;
+                        border-radius: 10px;
+                        padding: 80px 20px;
+                        text-align: center;
+                        background-color: #f8f9fa;
+                        color: #6c757d;
+                    '>
+                        <p style='font-size: 3rem; margin: 0;'>🖼️</p>
+                        <p style='font-size: 1.2rem; margin-top: 10px;'>X-Ray will appear here</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+            with col_info:
+                if 'random_ground_truth' in st.session_state:
+                    st.markdown("**📋 Ground Truth Labels**")
+
+                    # Count positive findings
+                    positive_findings = [
+                        disease for disease, label in st.session_state.random_ground_truth.items()
+                        if label == 1
+                    ]
+
+                    st.metric("Positive Findings", len(positive_findings))
+
+                    if positive_findings:
+                        st.markdown("**Diseases Present:**")
+                        for disease in positive_findings:
+                            st.markdown(f"- ✅ {disease}")
+                    else:
+                        st.success("✅ No Finding (Normal)")
+
+                    st.markdown("---")
+                    st.caption(f"📁 {st.session_state.random_filename}")
+                else:
+                    st.markdown("**💡 How to use:**")
+                    st.markdown("""
+                    1. Click the button to select a random X-ray
+                    2. View the image and ground truth labels
+                    3. Scroll down to see AI predictions
+                    4. Compare predictions with actual diagnoses
+                    """)
+
+                    st.markdown("---")
+                    st.caption("🎲 100 test images available")
 
     st.markdown("---")
 
