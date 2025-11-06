@@ -19,37 +19,139 @@ def make_gradcam_heatmap(img_array, model, last_conv_layer_name, pred_index=None
     Args:
         img_array: Preprocessed image array (1, 224, 224, 3)
         model: Keras model
-        last_conv_layer_name: Name of last convolutional layer
+        last_conv_layer_name: Name/object of last conv layer, or tuple (base_model_name, layer_name) for nested
         pred_index: Index of prediction to visualize (None = max prediction)
 
     Returns:
         heatmap: Numpy array (224, 224) with values in [0, 1]
     """
-    # Create a model that maps input to activations + predictions
-    grad_model = keras.Model(
-        inputs=model.inputs,
-        outputs=[
-            model.get_layer(last_conv_layer_name).output,
-            model.output
-        ]
-    )
+    # Handle different input types
+    if isinstance(last_conv_layer_name, tuple):
+        # Nested model: (base_model_name, layer_name)
+        base_model_name, layer_name = last_conv_layer_name
 
-    # Record operations for automatic differentiation
-    with tf.GradientTape() as tape:
-        conv_outputs, predictions = grad_model(img_array)
+        # For nested models, use a manual approach with GradientTape
+        # to extract intermediate activations
+        base_model = model.get_layer(base_model_name)
 
-        # If pred_index not specified, use the max prediction
-        if pred_index is None:
-            pred_index = tf.argmax(predictions[0])
+        def find_layer_in_model(model, layer_name):
+            """Recursively search for a layer by name."""
+            for layer in model.layers:
+                if layer.name == layer_name:
+                    return layer
+                if isinstance(layer, keras.Model):
+                    found = find_layer_in_model(layer, layer_name)
+                    if found is not None:
+                        return found
+            return None
 
-        # Get the prediction for the specified class
-        class_channel = predictions[:, pred_index]
+        conv_layer = find_layer_in_model(base_model, layer_name)
+        if conv_layer is None:
+            raise ValueError(f"Could not find layer '{layer_name}' in base model")
 
-    # Compute gradients of the prediction with respect to the feature map
-    grads = tape.gradient(class_channel, conv_outputs)
+        # Manual computation with GradientTape watching intermediate outputs
+        with tf.GradientTape() as tape:
+            # Convert to tensor and watch it
+            img_tensor = tf.convert_to_tensor(img_array)
+            tape.watch(img_tensor)
 
-    # Global average pooling of gradients (importance weights)
-    pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
+            # Forward pass through base model, storing intermediate activations
+            # We'll capture the conv layer output during the forward pass
+            conv_output_val = None
+
+            # Create a custom forward pass that captures the conv layer output
+            # by monkey-patching the layer's call method temporarily
+            original_call = conv_layer.call
+
+            def capturing_call(inputs, *args, **kwargs):
+                nonlocal conv_output_val
+                output = original_call(inputs, *args, **kwargs)
+                conv_output_val = output
+                return output
+
+            # Temporarily replace the call method
+            conv_layer.call = capturing_call
+
+            try:
+                # Run the full model
+                predictions = model(img_tensor, training=False)
+
+                # If pred_index not specified, use the max prediction
+                if pred_index is None:
+                    pred_index = tf.argmax(predictions[0])
+
+                # Get the prediction for the specified class
+                class_channel = predictions[:, pred_index]
+
+            finally:
+                # Restore original call method
+                conv_layer.call = original_call
+
+            # Compute gradients of the prediction with respect to conv layer output
+            grads = tape.gradient(class_channel, conv_output_val)
+
+        # If gradients or conv_output_val are None, fall back to simple approach
+        if grads is None or conv_output_val is None:
+            raise ValueError("Could not compute gradients for nested model. Layer may not be in gradient path.")
+
+        conv_outputs = conv_output_val
+        pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
+
+    elif isinstance(last_conv_layer_name, str):
+        # Simple case: layer name at model level
+        last_conv_layer = model.get_layer(last_conv_layer_name)
+        grad_model = keras.Model(
+            inputs=model.inputs,
+            outputs=[
+                last_conv_layer.output,
+                model.output
+            ]
+        )
+
+        # Record operations for automatic differentiation
+        with tf.GradientTape() as tape:
+            conv_outputs, predictions = grad_model(img_array)
+
+            # If pred_index not specified, use the max prediction
+            if pred_index is None:
+                pred_index = tf.argmax(predictions[0])
+
+            # Get the prediction for the specified class
+            class_channel = predictions[:, pred_index]
+
+        # Compute gradients of the prediction with respect to the feature map
+        grads = tape.gradient(class_channel, conv_outputs)
+
+        # Global average pooling of gradients (importance weights)
+        pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
+
+    else:
+        # Layer object directly (only works for top-level layers)
+        last_conv_layer = last_conv_layer_name
+        grad_model = keras.Model(
+            inputs=model.inputs,
+            outputs=[
+                last_conv_layer.output,
+                model.output
+            ]
+        )
+
+        # Record operations for automatic differentiation
+        with tf.GradientTape() as tape:
+            conv_outputs, predictions = grad_model(img_array)
+
+            # If pred_index not specified, use the max prediction
+            if pred_index is None:
+                pred_index = tf.argmax(predictions[0])
+
+            # Get the prediction for the specified class
+            class_channel = predictions[:, pred_index]
+
+        # Compute gradients of the prediction with respect to the feature map
+        grads = tape.gradient(class_channel, conv_outputs)
+
+        # Global average pooling of gradients (importance weights)
+        pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
 
     # Weight the feature map channels by their importance
     conv_outputs = conv_outputs[0]
@@ -123,14 +225,53 @@ def generate_gradcam_for_disease(model, img_array, disease_index, disease_name=N
     # or you can find it with: [layer.name for layer in model.layers if 'conv' in layer.name][-1]
 
     # Find last convolutional layer
+    # For models with nested structure (like our DenseNet121 wrapper), we need to look inside
     last_conv_layer = None
-    for layer in reversed(model.layers):
-        if hasattr(layer, 'filters'):  # Convolutional layer
-            last_conv_layer = layer.name
-            break
+
+    # Check if model has a densenet121 base model (common when using transfer learning)
+    densenet_base = None
+    for layer in model.layers:
+        if 'densenet' in layer.name.lower() or isinstance(layer, keras.Model):
+            # This might be our base model
+            try:
+                densenet_base = model.get_layer(layer.name)
+                break
+            except:
+                continue
+
+    # If we found a nested base model, look for conv layers inside it
+    if densenet_base is not None:
+        from tensorflow.keras.layers import Conv2D
+        # Get all conv layers from the base model
+        conv_layers = [l for l in densenet_base.layers if isinstance(l, Conv2D)]
+        if not conv_layers:
+            # Try by name if isinstance doesn't work
+            conv_layers = [l for l in densenet_base.layers if 'conv' in l.name.lower()]
+
+        if conv_layers:
+            # Use the last convolutional layer from the base model
+            # Pass as tuple (base_model_name, layer_name) for nested models
+            last_conv_layer = (densenet_base.name, conv_layers[-1].name)
+        else:
+            # Fall back to using a known DenseNet121 layer name
+            last_conv_layer = (densenet_base.name, 'conv5_block16_2_conv')
+
+    # If we still don't have a layer, try the direct approach (for simpler architectures)
+    if last_conv_layer is None:
+        from tensorflow.keras.layers import Conv2D
+        for layer in reversed(model.layers):
+            if isinstance(layer, Conv2D):
+                last_conv_layer = layer
+                break
+
+        # Try by name if isinstance doesn't work
+        if last_conv_layer is None:
+            conv_layer_names = [layer for layer in model.layers if 'conv' in layer.name.lower()]
+            if conv_layer_names:
+                last_conv_layer = conv_layer_names[-1]
 
     if last_conv_layer is None:
-        raise ValueError("Could not find convolutional layer in model")
+        raise ValueError(f"Could not find convolutional layer in model. Model may not support Grad-CAM. Model layers: {[l.name for l in model.layers[:10]]}")
 
     # Generate heatmap
     heatmap = make_gradcam_heatmap(
