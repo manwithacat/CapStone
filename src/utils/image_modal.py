@@ -219,7 +219,7 @@ def render_clickable_xray(disease: str, use_thumbnail: bool = True, caption: Opt
 
         # Clickable button integrated with the image
         # Fragment prevents full page rerun, preserving tab state
-        if st.button(button_label, key=f"modal_{disease_slug}", use_container_width=True, type="secondary"):
+        if st.button(button_label, key=f"modal_{disease_slug}", width='stretch', type="secondary"):
             show_xray_modal(disease, metadata)
 
 
