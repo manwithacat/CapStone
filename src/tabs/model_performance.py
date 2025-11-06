@@ -272,7 +272,7 @@ def render_model_performance_tab(df, disease_colors=None):
                 fig_bar.add_vline(x=0.5, line_dash="dash", line_color="gray", annotation_text="Random (0.5)")
                 fig_bar.add_vline(x=0.7, line_dash="dot", line_color="green", annotation_text="Good (0.7)")
 
-                st.plotly_chart(fig_bar, use_container_width=True)
+                st.plotly_chart(fig_bar, width='stretch')
 
                 # Performance categories
                 col1, col2, col3 = st.columns(3)
@@ -340,7 +340,7 @@ def render_model_performance_tab(df, disease_colors=None):
                     legend=dict(x=0.6, y=0.1)
                 )
 
-                st.plotly_chart(fig_roc, use_container_width=True)
+                st.plotly_chart(fig_roc, width='stretch')
 
                 # Show metrics
                 col1, col2, col3 = st.columns(3)
@@ -391,7 +391,7 @@ def render_model_performance_tab(df, disease_colors=None):
                     )
                 )
 
-                st.plotly_chart(fig_all, use_container_width=True)
+                st.plotly_chart(fig_all, width='stretch')
 
                 st.info("""
                 **Interpretation Guide:**
