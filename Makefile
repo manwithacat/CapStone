@@ -4,7 +4,7 @@
 PY ?= python
 
 .PHONY: help install lint format typecheck test test-fast test-notebooks pre-commit app clean \
-        mlflow-start mlflow-stop mlflow-ui mlflow-test mlflow-compare mlflow-clean
+        streamlit streamlit-open mlflow-start mlflow-stop mlflow-ui mlflow-test mlflow-compare mlflow-clean
 
 help:
 	@echo "Usage:"
@@ -21,7 +21,9 @@ help:
 	@echo "  make clean         - remove caches and temp files"
 	@echo ""
 	@echo "Application:"
-	@echo "  make app           - run the Streamlit dashboard locally"
+	@echo "  make app           - run the Streamlit dashboard (alias for streamlit)"
+	@echo "  make streamlit     - run the Streamlit dashboard locally"
+	@echo "  make streamlit-open - open Streamlit dashboard in browser"
 	@echo ""
 	@echo "MLflow Experiment Tracking:"
 	@echo "  make mlflow-start  - start MLflow UI server (http://localhost:5001)"
@@ -96,8 +98,26 @@ test-fast:
 pre-commit: lint format
 	@echo "✅ Pre-commit checks complete"
 
-app:
-	streamlit run app.py
+# ============================================================================
+# Streamlit Dashboard Commands
+# ============================================================================
+
+app: streamlit
+
+streamlit:
+	@echo "🚀 Starting Streamlit dashboard..."
+	@echo "   Access at: http://localhost:8501"
+	@echo ""
+	@streamlit run app.py
+
+streamlit-open:
+	@echo "📊 Opening Streamlit dashboard in browser..."
+	@if lsof -Pi :8501 -sTCP:LISTEN -t >/dev/null 2>&1; then \
+		open http://localhost:8501 || xdg-open http://localhost:8501 || echo "Open manually: http://localhost:8501"; \
+	else \
+		echo "⚠️  Streamlit is not running"; \
+		echo "   Start it with: make streamlit"; \
+	fi
 
 clean:
 	@find . -name "__pycache__" -type d -prune -exec rm -rf {} +
