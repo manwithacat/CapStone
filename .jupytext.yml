@@ -1,0 +1,11 @@
+# Jupytext configuration for NIH Chest X-Ray project
+# Automatically pairs .ipynb notebooks with .py files for better version control
+
+# Notebook formats to pair with
+formats: "ipynb,py:percent"
+
+# Notebook metadata filter (exclude outputs and execution metadata)
+notebook_metadata_filter: "-all"
+
+# Cell metadata filter (keep only essential metadata)
+cell_metadata_filter: "-all"
