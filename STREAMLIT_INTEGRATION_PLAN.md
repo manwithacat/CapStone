@@ -236,17 +236,30 @@ docs/
 
 **Total**: ~3.5-4.5 hours
 
-## Next Steps
+## Implementation Status
 
 1. ✅ Create feature branch
 2. ✅ Create this plan document
-3. ⏭️ Copy model to `models/saved_models/`
-4. ⏭️ Implement model loader utility
-5. ⏭️ Update Model Performance tab
-6. ⏭️ Update Disease Detector tab
-7. ⏭️ Test locally
-8. ⏭️ Deploy to Streamlit Cloud
+3. ✅ Copy model to `models/saved_models/` (37 MB DenseNet121)
+4. ✅ Implement model loader utility (`src/utils/model_loader.py`)
+5. ✅ Update Model Performance tab (real metrics, training plots)
+6. ✅ Update Disease Detector tab (real-time predictions)
+7. ✅ Dependencies verified (all in requirements.txt)
+8. ⏭️ Deploy to Streamlit Cloud (model file needs to be copied on deployment)
 9. ⏭️ Merge to main
+
+## Deployment Notes
+
+**Model File Handling:**
+- Model file `densenet121_best.keras` (37 MB) is excluded from git via `.gitignore`
+- On Streamlit Cloud deployment, copy model from `colab/results/models/densenet121-transfer/runs/2025-11-05_030929/`
+- Or download from MLflow Model Registry (`NIH-XRay-DENSENET121 v1`)
+
+**Streamlit Cloud Configuration:**
+- No special dependencies needed (all in requirements.txt)
+- Expected memory usage: ~500 MB for loaded model
+- Expected CPU inference time: 2-3 seconds per prediction
+- Model loads on first access via `@st.cache_resource`
 
 ## References
 
