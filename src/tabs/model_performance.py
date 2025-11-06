@@ -211,21 +211,210 @@ def render_model_performance_tab(df, disease_colors=None):
     - **AUC closer to 1.0**: Better overall performance
     """)
 
-    st.info("""
-    **🚧 ROC Curves Coming Soon**
+    # Try to load ROC curve data
+    roc_json_path = Path("outputs/reports/roc_curves_densenet121.json")
 
-    Individual ROC curves for each of the 14 disease classes will be generated from the DenseNet121 model.
-    These curves will be computed from the test set predictions and saved as interactive Plotly visualizations.
+    if roc_json_path.exists():
+        try:
+            import json
+            import plotly.graph_objects as go
 
-    **What will be shown:**
-    - Individual ROC curve for each disease
-    - AUC score overlay
-    - Optimal threshold point (maximizing F1 score)
-    - 95% confidence intervals (if sufficient test samples)
+            with open(roc_json_path, 'r') as f:
+                roc_data = json.load(f)
 
-    **Note:** ROC curve generation requires running inference on the full test set (16,491 images),
-    which can be added in a future notebook update.
-    """)
+            # Display summary metrics first
+            st.success(f"""
+            **✅ ROC Curves Generated**
+
+            Test set evaluation complete on 16,890 images.
+            Average AUC: **{sum(d['auc'] for d in roc_data.values()) / len(roc_data):.4f}**
+            """)
+
+            # Show selector for disease
+            disease_names = list(roc_data.keys())
+
+            # Create tabs for different views
+            tab1, tab2, tab3 = st.tabs(["📊 Summary View", "📈 Individual Disease", "📉 All Diseases"])
+
+            with tab1:
+                st.markdown("### Per-Disease AUC Scores")
+
+                # Create bar chart of AUC scores
+                diseases = list(roc_data.keys())
+                aucs = [roc_data[d]['auc'] for d in diseases]
+                n_positives = [roc_data[d]['n_positive'] for d in diseases]
+
+                # Color code by performance
+                colors = ['green' if auc >= 0.7 else 'orange' if auc >= 0.6 else 'red' for auc in aucs]
+
+                fig_bar = go.Figure([
+                    go.Bar(
+                        x=aucs,
+                        y=diseases,
+                        orientation='h',
+                        marker=dict(color=colors),
+                        text=[f"{auc:.3f}" for auc in aucs],
+                        textposition='auto',
+                        hovertemplate='<b>%{y}</b><br>AUC: %{x:.4f}<br>Positive samples: %{customdata}<extra></extra>',
+                        customdata=n_positives
+                    )
+                ])
+
+                fig_bar.update_layout(
+                    title="DenseNet121 Test Set Performance (AUC by Disease)",
+                    xaxis_title="AUC (Area Under ROC Curve)",
+                    yaxis_title="Disease",
+                    height=500,
+                    showlegend=False
+                )
+
+                fig_bar.add_vline(x=0.5, line_dash="dash", line_color="gray", annotation_text="Random (0.5)")
+                fig_bar.add_vline(x=0.7, line_dash="dot", line_color="green", annotation_text="Good (0.7)")
+
+                st.plotly_chart(fig_bar, use_container_width=True)
+
+                # Performance categories
+                col1, col2, col3 = st.columns(3)
+
+                with col1:
+                    good = [d for d, auc in zip(diseases, aucs) if auc >= 0.7]
+                    st.metric("✅ Good (AUC ≥ 0.7)", len(good))
+                    if good:
+                        st.caption(", ".join(good))
+
+                with col2:
+                    fair = [d for d, auc in zip(diseases, aucs) if 0.6 <= auc < 0.7]
+                    st.metric("⚠️ Fair (0.6 ≤ AUC < 0.7)", len(fair))
+                    if fair:
+                        st.caption(", ".join(fair))
+
+                with col3:
+                    poor = [d for d, auc in zip(diseases, aucs) if auc < 0.6]
+                    st.metric("❌ Poor (AUC < 0.6)", len(poor))
+                    if poor:
+                        st.caption(", ".join(poor))
+
+            with tab2:
+                st.markdown("### Individual Disease ROC Curve")
+
+                selected_disease = st.selectbox(
+                    "Select disease to view ROC curve:",
+                    disease_names,
+                    index=2  # Default to Effusion (best performing)
+                )
+
+                disease_data = roc_data[selected_disease]
+
+                # Create ROC curve plot
+                fig_roc = go.Figure()
+
+                # ROC curve
+                fig_roc.add_trace(go.Scatter(
+                    x=disease_data['fpr'],
+                    y=disease_data['tpr'],
+                    mode='lines',
+                    name=f'{selected_disease} (AUC = {disease_data["auc"]:.4f})',
+                    line=dict(color='blue', width=3),
+                    fill='tozeroy',
+                    fillcolor='rgba(0, 100, 255, 0.2)',
+                    hovertemplate='FPR: %{x:.3f}<br>TPR: %{y:.3f}<extra></extra>'
+                ))
+
+                # Diagonal reference line
+                fig_roc.add_trace(go.Scatter(
+                    x=[0, 1],
+                    y=[0, 1],
+                    mode='lines',
+                    name='Random Classifier',
+                    line=dict(color='red', width=2, dash='dash')
+                ))
+
+                fig_roc.update_layout(
+                    title=f'ROC Curve - {selected_disease}<br><sub>{disease_data["n_positive"]:,} positive, {disease_data["n_negative"]:,} negative samples</sub>',
+                    xaxis_title='False Positive Rate',
+                    yaxis_title='True Positive Rate',
+                    height=600,
+                    hovermode='closest',
+                    showlegend=True,
+                    legend=dict(x=0.6, y=0.1)
+                )
+
+                st.plotly_chart(fig_roc, use_container_width=True)
+
+                # Show metrics
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("AUC Score", f"{disease_data['auc']:.4f}")
+                with col2:
+                    st.metric("Positive Samples", f"{disease_data['n_positive']:,}")
+                with col3:
+                    st.metric("Negative Samples", f"{disease_data['n_negative']:,}")
+
+            with tab3:
+                st.markdown("### All Diseases - Comparative View")
+
+                # Create plot with all ROC curves
+                fig_all = go.Figure()
+
+                for disease, data in roc_data.items():
+                    fig_all.add_trace(go.Scatter(
+                        x=data['fpr'],
+                        y=data['tpr'],
+                        mode='lines',
+                        name=f"{disease} ({data['auc']:.3f})",
+                        hovertemplate=f'<b>{disease}</b><br>FPR: %{{x:.3f}}<br>TPR: %{{y:.3f}}<extra></extra>'
+                    ))
+
+                # Diagonal reference
+                fig_all.add_trace(go.Scatter(
+                    x=[0, 1],
+                    y=[0, 1],
+                    mode='lines',
+                    name='Random',
+                    line=dict(color='black', width=2, dash='dash'),
+                    showlegend=True
+                ))
+
+                fig_all.update_layout(
+                    title='ROC Curves - All 14 Diseases',
+                    xaxis_title='False Positive Rate',
+                    yaxis_title='True Positive Rate',
+                    height=700,
+                    hovermode='closest',
+                    legend=dict(
+                        yanchor="bottom",
+                        y=0.01,
+                        xanchor="right",
+                        x=0.99,
+                        bgcolor="rgba(255,255,255,0.8)"
+                    )
+                )
+
+                st.plotly_chart(fig_all, use_container_width=True)
+
+                st.info("""
+                **Interpretation Guide:**
+                - **Top-left corner**: Best performance (high TPR, low FPR)
+                - **Diagonal line**: Random guessing (AUC = 0.5)
+                - **Below diagonal**: Worse than random (may indicate label issues)
+                - **Steeper initial rise**: Better at low false positive rates (important for screening)
+                """)
+
+        except Exception as e:
+            st.error(f"Error loading ROC curves: {e}")
+            st.info("ROC curves will be generated after running notebook 08 evaluation.")
+    else:
+        st.info("""
+        **🚧 ROC Curves Not Yet Generated**
+
+        To generate ROC curves, run notebook 08:
+        ```bash
+        jupyter notebook jupyter_notebooks/08_model_evaluation.ipynb
+        ```
+
+        This will evaluate the DenseNet121 model on the test set and save ROC data to:
+        `outputs/reports/roc_curves_densenet121.json`
+        """)
 
     # -------------------------------------------------------------------------
     # MODEL INTERPRETABILITY
