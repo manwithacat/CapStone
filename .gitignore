@@ -266,8 +266,8 @@ colab/outputs/
 # Legacy directories (archived in kaggle/legacy/)
 kaggle/legacy/
 
-# nbpush activity logs (LLM-optimized, keep in repo)
-# .logs/ intentionally not ignored - these logs are for Claude to track activity
+# nbpush activity logs (LLM-optimized)
+.logs/
 
 # Colab results (downloaded from GCS)
 colab/results/**/*.keras

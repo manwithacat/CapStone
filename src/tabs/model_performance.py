@@ -73,8 +73,8 @@ def render_model_performance_tab(df, disease_colors=None):
             "Transfer Learning"
         ],
         "Test AUC": [0.7598, 0.7529, 0.6810, 0.6576, 0.5970, 0.5588, 0.5350],
-        "Test Loss": [0.351, 0.174, 0.199, "N/A", "N/A", "N/A", 0.199],
-        "Test Accuracy": [0.112, 0.180, 0.236, "N/A", "N/A", "N/A", 0.101],
+        "Test Loss": [0.351, 0.174, 0.199, None, None, None, 0.199],
+        "Test Accuracy": [0.112, 0.180, 0.236, None, None, None, 0.101],
         "Parameters": ["104M", "7.6M", "24.6M", "~1M", "~1M", "~0.1M", "11.6M"],
         "Training Platform": ["Local", "Colab A100", "Colab A100", "Local", "Local", "Local", "Colab A100"],
         "Status": ["✅ Best", "✅ Production", "✅ Ready", "✅ Baseline", "✅ Baseline", "✅ Baseline", "❌ Poor"]
