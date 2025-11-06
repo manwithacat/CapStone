@@ -2,11 +2,11 @@
 Dashboard View - Main Application Dashboard
 
 This module renders the main dashboard view with 6 tabs:
-1. Data Exploration
-2. Sample Images
-3. Hypothesis Validation
-4. Model Performance
-5. Disease Detector
+1. Disease Detector (DEFAULT)
+2. Data Exploration
+3. Sample Images
+4. Hypothesis Validation
+5. Model Performance
 6. Clinical Insights
 """
 
@@ -92,43 +92,43 @@ def render_dashboard(df, eda_report, hypothesis_report, disease_colors):
     # MAIN CONTENT - Organized into tabs
     # ========================================================================
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+        "🔍 Disease Detector",
         "📊 Data Exploration",
         "🖼️ Sample Images",
         "📈 Hypothesis Validation",
         "📏 Model Performance",
-        "🔍 Disease Detector",
         "💡 Clinical Insights"
     ])
 
     # ========================================================================
-    # TAB 1: DATA EXPLORATION
+    # TAB 1: DISEASE DETECTOR (DEFAULT)
     # ========================================================================
     with tab1:
+        render_disease_detector_tab(df, disease_colors=disease_colors)
+
+    # ========================================================================
+    # TAB 2: DATA EXPLORATION
+    # ========================================================================
+    with tab2:
         render_data_exploration_tab(df, eda_report, disease_colors=disease_colors)
 
     # ========================================================================
-    # TAB 2: SAMPLE IMAGES
+    # TAB 3: SAMPLE IMAGES
     # ========================================================================
-    with tab2:
+    with tab3:
         render_sample_images_tab(df, disease_colors=disease_colors)
 
     # ========================================================================
-    # TAB 3: HYPOTHESIS VALIDATION
+    # TAB 4: HYPOTHESIS VALIDATION
     # ========================================================================
-    with tab3:
+    with tab4:
         render_hypothesis_validation_tab(df, hypothesis_report, disease_colors=disease_colors)
 
     # ========================================================================
-    # TAB 4: MODEL PERFORMANCE
-    # ========================================================================
-    with tab4:
-        render_model_performance_tab(df, disease_colors=disease_colors)
-
-    # ========================================================================
-    # TAB 5: DISEASE DETECTOR
+    # TAB 5: MODEL PERFORMANCE
     # ========================================================================
     with tab5:
-        render_disease_detector_tab(df, disease_colors=disease_colors)
+        render_model_performance_tab(df, disease_colors=disease_colors)
 
     # ========================================================================
     # TAB 6: CLINICAL INSIGHTS
