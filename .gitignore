@@ -272,3 +272,6 @@ kaggle/legacy/
 # Colab results (downloaded from GCS)
 colab/results/**/*.keras
 colab/results/**/*.h5
+
+# VS Code workspace settings (personalized, do not commit)
+.vscode/settings.json
