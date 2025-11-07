@@ -153,6 +153,7 @@ Start here for essential workflows:
 |----------|-------------|
 | [Assessment_Handbook.md](Assessment_Handbook.md) | Code Institute assessment criteria |
 | [LEARNING_OBJECTIVES_VERIFICATION.md](LEARNING_OBJECTIVES_VERIFICATION.md) | **Complete LO1-LO11 verification** ✅ |
+| [AI_USAGE_STATEMENT.md](AI_USAGE_STATEMENT.md) | **AI usage, challenges, benefits, and ethical considerations** (for submission form) |
 | [SUBMISSION_PREPARATION_SUMMARY.md](SUBMISSION_PREPARATION_SUMMARY.md) | Final submission checklist and summary |
 | [PROJECT_SETUP_COMPLETE.md](PROJECT_SETUP_COMPLETE.md) | Initial setup completion notes |
 | [COMMIT_SUMMARY.md](COMMIT_SUMMARY.md) | Git commit history summary |
@@ -211,7 +212,7 @@ When creating new documentation:
 
 ---
 
-**Total Documents**: 47 (docs/ + colab/)
+**Total Documents**: 48 (docs/ + colab/)
 **Last Scan**: November 7, 2025
 **Status**: ✅ Ready for submission
 
