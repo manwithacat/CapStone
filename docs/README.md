@@ -42,6 +42,15 @@ Start here for essential workflows:
 | [HEADLESS_KAGGLE_TRAINING.md](HEADLESS_KAGGLE_TRAINING.md) | Automated Kaggle training without UI |
 | [COLAB_GUIDE.md](COLAB_GUIDE.md) | Complete Colab workflow |
 | [COLAB_PRO_SETUP.md](COLAB_PRO_SETUP.md) | Colab Pro configuration guide |
+| [../colab/COLAB_NO_DRIVE_SETUP.md](../colab/COLAB_NO_DRIVE_SETUP.md) | Colab without Google Drive setup |
+| [../colab/COLAB_PYDRIVE2_SETUP.md](../colab/COLAB_PYDRIVE2_SETUP.md) | PyDrive2 integration for Colab |
+| [../colab/COLAB_REFERENCE.md](../colab/COLAB_REFERENCE.md) | Colab API reference |
+| [../colab/COLAB_SETUP_GUIDE.md](../colab/COLAB_SETUP_GUIDE.md) | Comprehensive Colab setup |
+| [../colab/GCS_SETUP.md](../colab/GCS_SETUP.md) | Google Cloud Storage setup |
+| [../colab/GCS_SETUP_GUIDE.md](../colab/GCS_SETUP_GUIDE.md) | Detailed GCS configuration |
+| [../colab/OAUTH_SETUP.md](../colab/OAUTH_SETUP.md) | OAuth credentials for Colab |
+| [../colab/SETUP_INSTRUCTIONS.md](../colab/SETUP_INSTRUCTIONS.md) | General Colab setup instructions |
+| [../colab/MLFLOW_ENRICHMENT_SUMMARY.md](../colab/MLFLOW_ENRICHMENT_SUMMARY.md) | MLflow integration with Colab results |
 
 ### Kaggle-Specific Documentation
 
@@ -121,6 +130,7 @@ Start here for essential workflows:
 | Document | Description |
 |----------|-------------|
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Streamlit dashboard deployment guide |
+| [STREAMLIT_INTEGRATION_PLAN.md](STREAMLIT_INTEGRATION_PLAN.md) | DenseNet121 model integration plan |
 | [streamlit_histogram_binning_spec.md](streamlit_histogram_binning_spec.md) | Histogram binning specification |
 
 ---
@@ -142,9 +152,12 @@ Start here for essential workflows:
 | Document | Description |
 |----------|-------------|
 | [Assessment_Handbook.md](Assessment_Handbook.md) | Code Institute assessment criteria |
+| [LEARNING_OBJECTIVES_VERIFICATION.md](LEARNING_OBJECTIVES_VERIFICATION.md) | **Complete LO1-LO11 verification** ✅ |
+| [SUBMISSION_PREPARATION_SUMMARY.md](SUBMISSION_PREPARATION_SUMMARY.md) | Final submission checklist and summary |
 | [PROJECT_SETUP_COMPLETE.md](PROJECT_SETUP_COMPLETE.md) | Initial setup completion notes |
 | [COMMIT_SUMMARY.md](COMMIT_SUMMARY.md) | Git commit history summary |
 | [NEXT_STEPS.md](NEXT_STEPS.md) | Future development plans |
+| [FUTURE_SALIENCY_MAPS_GAP_ANALYSIS.md](FUTURE_SALIENCY_MAPS_GAP_ANALYSIS.md) | Implementation plan for pixel-level saliency maps (future enhancement) |
 
 ---
 
@@ -198,5 +211,17 @@ When creating new documentation:
 
 ---
 
-**Total Documents**: 34
-**Last Scan**: November 4, 2025
+**Total Documents**: 47 (docs/ + colab/)
+**Last Scan**: November 7, 2025
+**Status**: ✅ Ready for submission
+
+---
+
+## Future Enhancements
+
+Documentation for planned improvements:
+
+| Document | Description |
+|----------|-------------|
+| [FUTURE_SALIENCY_MAPS_GAP_ANALYSIS.md](FUTURE_SALIENCY_MAPS_GAP_ANALYSIS.md) | Pixel-level saliency maps implementation plan (~440 LOC, 11-14 hours) |
+| [NEXT_STEPS.md](NEXT_STEPS.md) | General future development roadmap |

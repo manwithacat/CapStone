@@ -24,6 +24,13 @@ nbstripout>=0.6.0            # Strip notebook outputs for version control
 nbdime>=4.0.0                # Notebook diff and merge tools
 
 # ============================================================================
+# Notebook Workflow & Automation
+# ============================================================================
+jupytext>=1.16.0             # Notebook ↔ .py synchronization for version control
+papermill>=2.4.0             # Parameterized notebook execution for testing
+nbconvert>=7.0.0             # Notebook conversion utilities
+
+# ============================================================================
 # Testing & CI/CD
 # ============================================================================
 pytest>=7.4.0                # Testing framework
