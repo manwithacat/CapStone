@@ -141,7 +141,7 @@ def render_disease_detector_tab(df, disease_colors=None):
             time_since_last = current_time - st.session_state.last_prediction_time
             cooldown_seconds = 10.0  # Minimum 10 seconds between predictions
 
-            button_disabled = time_since_last < cooldown_seconds
+            button_disabled = time_since_last < cooldown_seconds and st.session_state.prediction_count > 0
 
             # Show countdown or ready state
             if button_disabled:
@@ -160,8 +160,8 @@ def render_disease_detector_tab(df, disease_colors=None):
                 button_label = "🎲 Pick Random X-Ray"
 
             if st.button(button_label, type="primary", width='stretch', disabled=button_disabled):
-                st.session_state.last_prediction_time = current_time
-                st.session_state.prediction_count += 1
+                # Don't update last_prediction_time here - it will be updated when prediction actually runs
+                # This prevents the double-check issue
 
                 # Load metadata
                 metadata_df = pd.read_csv(metadata_path)
@@ -278,17 +278,8 @@ def render_disease_detector_tab(df, disease_colors=None):
         is_loading = cache_key not in st.session_state
 
         if is_loading:
-            # Rate limiting check before running prediction
+            # Update prediction tracking (moved from button click to here)
             current_time = time.time()
-            time_since_last = current_time - st.session_state.last_prediction_time
-            cooldown_seconds = 10.0
-
-            if time_since_last < cooldown_seconds and st.session_state.prediction_count > 0:
-                remaining = int(cooldown_seconds - time_since_last) + 1
-                st.warning(f"⏳ Please wait {remaining} seconds before next prediction to prevent server overload.")
-                st.stop()
-
-            # Update prediction tracking
             st.session_state.last_prediction_time = current_time
             st.session_state.prediction_count += 1
 
