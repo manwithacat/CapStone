@@ -12,6 +12,7 @@ import numpy as np
 from PIL import Image
 from pathlib import Path
 import random
+import time
 from src.utils.model_loader import (
     load_densenet_model,
     preprocess_image,
@@ -34,12 +35,36 @@ def render_disease_detector_tab(df, disease_colors=None):
         df (pd.DataFrame): Main dataset with patient/image metadata
         disease_colors (dict, optional): Color mapping for disease visualization
     """
+    # Initialize rate limiting in session state
+    if 'last_prediction_time' not in st.session_state:
+        st.session_state.last_prediction_time = 0
+    if 'prediction_count' not in st.session_state:
+        st.session_state.prediction_count = 0
+
+    # Memory management: Clear old cached predictions (keep only last 5)
+    prediction_keys = [k for k in st.session_state.keys() if k.startswith('predictions_')]
+    if len(prediction_keys) > 5:
+        # Sort by creation time (not available, so just keep last 5 alphabetically)
+        prediction_keys.sort()
+        for old_key in prediction_keys[:-5]:
+            del st.session_state[old_key]
+
     st.header("🔍 AI-Powered Disease Detection")
 
     st.markdown("""
     Upload a chest X-ray image or pick a random test image to receive AI-powered disease predictions with
     visual explanations showing which regions of the image influenced the model's decisions.
     """)
+
+    # Show rate limit info if user is being throttled
+    current_time = time.time()
+    time_since_last = current_time - st.session_state.last_prediction_time
+    cooldown_seconds = 2.0
+
+    if time_since_last < cooldown_seconds and st.session_state.prediction_count > 0:
+        remaining = cooldown_seconds - time_since_last
+        st.info(f"⏳ Rate limit: Please wait {remaining:.1f}s before next prediction (prevents server overload)")
+
 
     # Load DenseNet121 model
     model_path = "models/saved_models/densenet121_best.keras"
@@ -111,7 +136,21 @@ def render_disease_detector_tab(df, disease_colors=None):
             st.error(f"❌ Sample images not found. Please run: `python scripts/create_sample_test_images.py`")
         else:
             # Button to pick random image
-            if st.button("🎲 Pick Random X-Ray", type="primary", width='stretch'):
+            # Add rate limiting to prevent rapid clicking
+            current_time = time.time()
+            time_since_last = current_time - st.session_state.last_prediction_time
+            cooldown_seconds = 2.0  # Minimum 2 seconds between predictions
+
+            button_disabled = time_since_last < cooldown_seconds
+            button_label = "🎲 Pick Random X-Ray"
+            if button_disabled:
+                remaining = cooldown_seconds - time_since_last
+                button_label = f"⏳ Wait {remaining:.1f}s..."
+
+            if st.button(button_label, type="primary", width='stretch', disabled=button_disabled):
+                st.session_state.last_prediction_time = current_time
+                st.session_state.prediction_count += 1
+
                 # Load metadata
                 metadata_df = pd.read_csv(metadata_path)
 
@@ -227,6 +266,18 @@ def render_disease_detector_tab(df, disease_colors=None):
         is_loading = cache_key not in st.session_state
 
         if is_loading:
+            # Rate limiting check before running prediction
+            current_time = time.time()
+            time_since_last = current_time - st.session_state.last_prediction_time
+
+            if time_since_last < 2.0 and st.session_state.prediction_count > 0:
+                st.warning(f"⏳ Please wait {2.0 - time_since_last:.1f} seconds before next prediction to prevent server overload.")
+                st.stop()
+
+            # Update prediction tracking
+            st.session_state.last_prediction_time = current_time
+            st.session_state.prediction_count += 1
+
             # Set loading flag to disable all interactive elements
             st.session_state['is_loading'] = True
 
