@@ -137,10 +137,6 @@ def render_disease_detector_tab(df, disease_colors=None):
                 remaining = int(cooldown_seconds - time_since_last) + 1
                 button_label = f"Next prediction available in: {remaining} seconds"
                 button_disabled = True
-
-                # Auto-refresh to update countdown
-                time.sleep(1)
-                st.rerun()
             else:
                 button_label = "🎲 Pick Random X-Ray"
                 button_disabled = False
