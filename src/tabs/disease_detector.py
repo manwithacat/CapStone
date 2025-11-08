@@ -40,6 +40,8 @@ def render_disease_detector_tab(df, disease_colors=None):
         st.session_state.last_prediction_time = 0
     if 'prediction_count' not in st.session_state:
         st.session_state.prediction_count = 0
+    if 'is_predicting' not in st.session_state:
+        st.session_state.is_predicting = False
 
     # Memory management: Clear old cached predictions (keep only last 5)
     prediction_keys = [k for k in st.session_state.keys() if k.startswith('predictions_')]
@@ -56,13 +58,20 @@ def render_disease_detector_tab(df, disease_colors=None):
     visual explanations showing which regions of the image influenced the model's decisions.
     """)
 
-    # Load DenseNet121 model
+    # Load DenseNet121 model (cache it to avoid reloading on every rerun)
     model_path = "models/saved_models/densenet121_best.keras"
 
-    try:
-        model = load_densenet_model(model_path)
-    except Exception as e:
-        st.error(f"❌ Failed to load model: {e}")
+    @st.cache_resource
+    def get_model():
+        """Load and cache the model. Use clear_cache to reload on errors."""
+        try:
+            return load_densenet_model(model_path)
+        except Exception as e:
+            st.error(f"❌ Failed to load model: {e}")
+            return None
+
+    model = get_model()
+    if model is None:
         st.stop()
 
     # -------------------------------------------------------------------------
@@ -130,10 +139,14 @@ def render_disease_detector_tab(df, disease_colors=None):
             time_since_last = current_time - st.session_state.last_prediction_time
             cooldown_seconds = 10.0
 
-            # Check if in cooldown period
+            # Check if in cooldown period OR currently predicting
             in_cooldown = (time_since_last < cooldown_seconds) and (st.session_state.prediction_count > 0)
+            is_busy = st.session_state.is_predicting
 
-            if in_cooldown:
+            if is_busy:
+                button_label = "⏳ Prediction in progress..."
+                button_disabled = True
+            elif in_cooldown:
                 remaining = int(cooldown_seconds - time_since_last) + 1
                 button_label = f"Next prediction available in: {remaining} seconds"
                 button_disabled = True
@@ -261,7 +274,13 @@ def render_disease_detector_tab(df, disease_colors=None):
         is_loading = cache_key not in st.session_state
 
         if is_loading:
-            # Set loading flag to disable all interactive elements
+            # Check if another prediction is already running (prevent concurrent TensorFlow operations)
+            if st.session_state.is_predicting:
+                st.warning("⏳ A prediction is already in progress. Please wait for it to complete.")
+                st.stop()
+
+            # Set prediction lock
+            st.session_state.is_predicting = True
             st.session_state['is_loading'] = True
 
             # Run prediction (only once per image)
@@ -296,15 +315,31 @@ def render_disease_detector_tab(df, disease_colors=None):
                     }
 
                 except Exception as e:
-                    st.error(f"❌ Prediction failed: {e}")
+                    error_msg = str(e)
+                    st.error(f"❌ Prediction failed: {error_msg}")
+
+                    # If it's a TensorFlow Metal error, suggest clearing cache
+                    if "mps_placeholder" in error_msg or "Metal" in error_msg or "feed tensor" in error_msg:
+                        st.warning("""
+                        🔧 **TensorFlow Metal Error Detected**
+
+                        This is a known issue with Apple Silicon GPU acceleration. Try:
+                        1. Refresh the page (F5 or Cmd+R)
+                        2. If issue persists, the model cache may be corrupted
+
+                        Technical details: TensorFlow's Metal backend can crash when handling rapid concurrent requests.
+                        The rate limiting should prevent this, but if you see this error, please refresh.
+                        """)
+
                     st.session_state[cache_key] = {
                         'predictions': None,
                         'top_3': [],
                         'gradcam_results': []
                     }
                 finally:
-                    # Clear loading flag
+                    # Clear loading flag and prediction lock
                     st.session_state['is_loading'] = False
+                    st.session_state.is_predicting = False
 
         # Retrieve cached results
         cached_data = st.session_state.get(cache_key, {})
