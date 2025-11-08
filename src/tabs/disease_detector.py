@@ -38,10 +38,6 @@ def render_disease_detector_tab(df, disease_colors=None):
     # Initialize rate limiting in session state
     if 'last_prediction_time' not in st.session_state:
         st.session_state.last_prediction_time = 0
-    if 'prediction_count' not in st.session_state:
-        st.session_state.prediction_count = 0
-    if 'is_predicting' not in st.session_state:
-        st.session_state.is_predicting = False
 
     # Memory management: Clear old cached predictions (keep only last 5)
     prediction_keys = [k for k in st.session_state.keys() if k.startswith('predictions_')]
@@ -139,14 +135,10 @@ def render_disease_detector_tab(df, disease_colors=None):
             time_since_last = current_time - st.session_state.last_prediction_time
             cooldown_seconds = 10.0
 
-            # Check if in cooldown period OR currently predicting
-            in_cooldown = (time_since_last < cooldown_seconds) and (st.session_state.prediction_count > 0)
-            is_busy = st.session_state.is_predicting
+            # Check if in cooldown period
+            in_cooldown = time_since_last < cooldown_seconds
 
-            if is_busy:
-                button_label = "⏳ Prediction in progress..."
-                button_disabled = True
-            elif in_cooldown:
+            if in_cooldown:
                 remaining = int(cooldown_seconds - time_since_last) + 1
                 button_label = f"Next prediction available in: {remaining} seconds"
                 button_disabled = True
@@ -155,10 +147,6 @@ def render_disease_detector_tab(df, disease_colors=None):
                 button_disabled = False
 
             if st.button(button_label, type="primary", width='stretch', disabled=button_disabled):
-                # Update timestamp immediately when button clicked
-                st.session_state.last_prediction_time = time.time()
-                st.session_state.prediction_count += 1
-
                 # Load metadata
                 metadata_df = pd.read_csv(metadata_path)
 
@@ -274,13 +262,10 @@ def render_disease_detector_tab(df, disease_colors=None):
         is_loading = cache_key not in st.session_state
 
         if is_loading:
-            # Check if another prediction is already running (prevent concurrent TensorFlow operations)
-            if st.session_state.is_predicting:
-                st.warning("⏳ A prediction is already in progress. Please wait for it to complete.")
-                st.stop()
+            # Update timestamp when prediction starts (starts cooldown)
+            st.session_state.last_prediction_time = time.time()
 
-            # Set prediction lock
-            st.session_state.is_predicting = True
+            # Set loading flag to disable all interactive elements
             st.session_state['is_loading'] = True
 
             # Run prediction (only once per image)
@@ -337,9 +322,8 @@ def render_disease_detector_tab(df, disease_colors=None):
                         'gradcam_results': []
                     }
                 finally:
-                    # Clear loading flag and prediction lock
+                    # Clear loading flag
                     st.session_state['is_loading'] = False
-                    st.session_state.is_predicting = False
 
         # Retrieve cached results
         cached_data = st.session_state.get(cache_key, {})
