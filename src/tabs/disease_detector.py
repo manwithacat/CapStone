@@ -59,11 +59,11 @@ def render_disease_detector_tab(df, disease_colors=None):
     # Show rate limit info if user is being throttled
     current_time = time.time()
     time_since_last = current_time - st.session_state.last_prediction_time
-    cooldown_seconds = 2.0
+    cooldown_seconds = 10.0
 
     if time_since_last < cooldown_seconds and st.session_state.prediction_count > 0:
         remaining = cooldown_seconds - time_since_last
-        st.info(f"⏳ Rate limit: Please wait {remaining:.1f}s before next prediction (prevents server overload)")
+        st.info(f"⏳ Rate limit: Please wait {remaining:.0f} seconds before next prediction (prevents server overload)")
 
 
     # Load DenseNet121 model
@@ -139,13 +139,25 @@ def render_disease_detector_tab(df, disease_colors=None):
             # Add rate limiting to prevent rapid clicking
             current_time = time.time()
             time_since_last = current_time - st.session_state.last_prediction_time
-            cooldown_seconds = 2.0  # Minimum 2 seconds between predictions
+            cooldown_seconds = 10.0  # Minimum 10 seconds between predictions
 
             button_disabled = time_since_last < cooldown_seconds
-            button_label = "🎲 Pick Random X-Ray"
+
+            # Show countdown or ready state
             if button_disabled:
-                remaining = cooldown_seconds - time_since_last
-                button_label = f"⏳ Wait {remaining:.1f}s..."
+                remaining = int(cooldown_seconds - time_since_last) + 1  # Round up for countdown
+                button_label = f"⏳ Wait {remaining} second{'s' if remaining != 1 else ''}..."
+
+                # Add a placeholder that auto-refreshes to show countdown
+                countdown_placeholder = st.empty()
+                countdown_placeholder.info(f"🕐 Next prediction available in: **{remaining} seconds**")
+
+                # Auto-refresh every second to update countdown
+                if remaining > 0:
+                    time.sleep(0.1)  # Small delay to trigger rerun
+                    st.rerun()
+            else:
+                button_label = "🎲 Pick Random X-Ray"
 
             if st.button(button_label, type="primary", width='stretch', disabled=button_disabled):
                 st.session_state.last_prediction_time = current_time
@@ -269,9 +281,11 @@ def render_disease_detector_tab(df, disease_colors=None):
             # Rate limiting check before running prediction
             current_time = time.time()
             time_since_last = current_time - st.session_state.last_prediction_time
+            cooldown_seconds = 10.0
 
-            if time_since_last < 2.0 and st.session_state.prediction_count > 0:
-                st.warning(f"⏳ Please wait {2.0 - time_since_last:.1f} seconds before next prediction to prevent server overload.")
+            if time_since_last < cooldown_seconds and st.session_state.prediction_count > 0:
+                remaining = int(cooldown_seconds - time_since_last) + 1
+                st.warning(f"⏳ Please wait {remaining} seconds before next prediction to prevent server overload.")
                 st.stop()
 
             # Update prediction tracking
