@@ -12,7 +12,9 @@ import numpy as np
 from PIL import Image
 from pathlib import Path
 import random
+import hashlib
 import time
+import threading
 from src.utils.model_loader import (
     load_densenet_model,
     preprocess_image,
@@ -27,6 +29,12 @@ from src.utils.gradcam import (
 )
 
 
+@st.cache_resource
+def get_prediction_lock():
+    """Get a thread lock to serialize predictions."""
+    return threading.Lock()
+
+
 def render_disease_detector_tab(df, disease_colors=None):
     """
     Render the Disease Detector tab with image upload and prediction interface.
@@ -35,10 +43,6 @@ def render_disease_detector_tab(df, disease_colors=None):
         df (pd.DataFrame): Main dataset with patient/image metadata
         disease_colors (dict, optional): Color mapping for disease visualization
     """
-    # Initialize rate limiting in session state
-    if 'last_prediction_time' not in st.session_state:
-        st.session_state.last_prediction_time = None  # None = never predicted before
-
     # Memory management: Clear old cached predictions (keep only last 5)
     prediction_keys = [k for k in st.session_state.keys() if k.startswith('predictions_')]
     if len(prediction_keys) > 5:
@@ -130,33 +134,7 @@ def render_disease_detector_tab(df, disease_colors=None):
         if not metadata_path.exists():
             st.error(f"❌ Sample images not found. Please run: `python scripts/create_sample_test_images.py`")
         else:
-            # Button to pick random image with cooldown
-            current_time = time.time()
-            cooldown_seconds = 10.0
-
-            # Check if in cooldown period
-            if st.session_state.last_prediction_time is None:
-                # Never predicted before - button ready
-                in_cooldown = False
-                button_label = "🎲 Pick Random X-Ray"
-                button_disabled = False
-            else:
-                time_since_last = current_time - st.session_state.last_prediction_time
-                in_cooldown = time_since_last < cooldown_seconds
-
-                if in_cooldown:
-                    remaining = int(cooldown_seconds - time_since_last) + 1
-                    button_label = f"Next prediction available in: {remaining} seconds"
-                    button_disabled = True
-
-                    # Auto-refresh to update countdown (use fragment to avoid full rerun)
-                    time.sleep(1)
-                    st.rerun()
-                else:
-                    button_label = "🎲 Pick Random X-Ray"
-                    button_disabled = False
-
-            if st.button(button_label, type="primary", width='stretch', disabled=button_disabled):
+            if st.button("🎲 Pick Random X-Ray", type="primary", width='stretch'):
                 # Load metadata
                 metadata_df = pd.read_csv(metadata_path)
 
@@ -272,68 +250,63 @@ def render_disease_detector_tab(df, disease_colors=None):
         is_loading = cache_key not in st.session_state
 
         if is_loading:
-            # Update timestamp when prediction starts (starts cooldown)
-            st.session_state.last_prediction_time = time.time()
+            # Acquire lock to serialize TensorFlow operations
+            lock = get_prediction_lock()
 
-            # Set loading flag to disable all interactive elements
-            st.session_state['is_loading'] = True
+            # Try to acquire lock with timeout to prevent infinite waiting
+            acquired = lock.acquire(timeout=30.0)
 
-            # Run prediction (only once per image)
-            with st.spinner("🔮 Running AI prediction..."):
+            if not acquired:
+                st.error("❌ Prediction timed out. Please try again.")
+                st.session_state[cache_key] = {
+                    'predictions': None,
+                    'top_3': [],
+                    'gradcam_results': []
+                }
+            else:
                 try:
-                    # Preprocess image
-                    processed_image = preprocess_image(image_to_predict)
+                    # Run prediction (only once per image)
+                    with st.spinner("🔮 Running AI prediction... (please don't spam the button)"):
+                        # Preprocess image
+                        processed_image = preprocess_image(image_to_predict)
 
-                    # Get predictions
-                    predictions = predict_diseases(model, processed_image)
+                        # Get predictions
+                        predictions = predict_diseases(model, processed_image)
 
-                    # Get top 3 predictions
-                    top_3 = get_top_predictions(predictions, top_k=3, threshold=0.0)
+                        # Get top 3 predictions
+                        top_3 = get_top_predictions(predictions, top_k=3, threshold=0.0)
 
-                    # Generate Grad-CAM for top predictions
-                    # Note: disease_classes is defined outside this block for reuse
-                    predictions_array = np.array([predictions[disease] for disease in get_disease_classes()])
+                        # Generate Grad-CAM for top predictions
+                        predictions_array = np.array([predictions[disease] for disease in get_disease_classes()])
 
-                    gradcam_results = get_top_gradcam_predictions(
-                        model,
-                        processed_image,
-                        predictions_array,
-                        top_k=3
-                    )
+                        gradcam_results = get_top_gradcam_predictions(
+                            model,
+                            processed_image,
+                            predictions_array,
+                            top_k=3
+                        )
 
-                    # Cache results in session state (convert to native Python types)
-                    # Important: Don't store TensorFlow tensors - causes MPS issues on Apple Silicon
-                    st.session_state[cache_key] = {
-                        'predictions': {k: float(v) for k, v in predictions.items()},
-                        'top_3': [(disease, float(prob)) for disease, prob in top_3],
-                        'gradcam_results': gradcam_results  # PIL Images are safe to cache
-                    }
+                        # Cache results in session state (convert to native Python types)
+                        # Important: Don't store TensorFlow tensors - causes MPS issues on Apple Silicon
+                        st.session_state[cache_key] = {
+                            'predictions': {k: float(v) for k, v in predictions.items()},
+                            'top_3': [(disease, float(prob)) for disease, prob in top_3],
+                            'gradcam_results': gradcam_results  # PIL Images are safe to cache
+                        }
 
                 except Exception as e:
                     error_msg = str(e)
                     st.error(f"❌ Prediction failed: {error_msg}")
-
-                    # If it's a TensorFlow Metal error, suggest clearing cache
-                    if "mps_placeholder" in error_msg or "Metal" in error_msg or "feed tensor" in error_msg:
-                        st.warning("""
-                        🔧 **TensorFlow Metal Error Detected**
-
-                        This is a known issue with Apple Silicon GPU acceleration. Try:
-                        1. Refresh the page (F5 or Cmd+R)
-                        2. If issue persists, the model cache may be corrupted
-
-                        Technical details: TensorFlow's Metal backend can crash when handling rapid concurrent requests.
-                        The rate limiting should prevent this, but if you see this error, please refresh.
-                        """)
 
                     st.session_state[cache_key] = {
                         'predictions': None,
                         'top_3': [],
                         'gradcam_results': []
                     }
+
                 finally:
-                    # Clear loading flag
-                    st.session_state['is_loading'] = False
+                    # Always release the lock
+                    lock.release()
 
         # Retrieve cached results
         cached_data = st.session_state.get(cache_key, {})

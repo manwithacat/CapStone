@@ -88,7 +88,10 @@ def make_gradcam_heatmap(img_array, model, last_conv_layer_name, pred_index=None
                 conv_layer.call = original_call
 
             # Compute gradients of the prediction with respect to conv layer output
-            grads = tape.gradient(class_channel, conv_output_val)
+            try:
+                grads = tape.gradient(class_channel, conv_output_val)
+            except Exception as e:
+                raise ValueError(f"Gradient computation failed: {str(e)}")
 
         # If gradients or conv_output_val are None, fall back to simple approach
         if grads is None or conv_output_val is None:
@@ -120,7 +123,13 @@ def make_gradcam_heatmap(img_array, model, last_conv_layer_name, pred_index=None
             class_channel = predictions[:, pred_index]
 
         # Compute gradients of the prediction with respect to the feature map
-        grads = tape.gradient(class_channel, conv_outputs)
+        try:
+            grads = tape.gradient(class_channel, conv_outputs)
+        except Exception as e:
+            raise ValueError(f"Gradient computation failed: {str(e)}")
+
+        if grads is None:
+            raise ValueError("Gradients are None - layer may not be in gradient path")
 
         # Global average pooling of gradients (importance weights)
         pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
@@ -148,7 +157,13 @@ def make_gradcam_heatmap(img_array, model, last_conv_layer_name, pred_index=None
             class_channel = predictions[:, pred_index]
 
         # Compute gradients of the prediction with respect to the feature map
-        grads = tape.gradient(class_channel, conv_outputs)
+        try:
+            grads = tape.gradient(class_channel, conv_outputs)
+        except Exception as e:
+            raise ValueError(f"Gradient computation failed: {str(e)}")
+
+        if grads is None:
+            raise ValueError("Gradients are None - layer may not be in gradient path")
 
         # Global average pooling of gradients (importance weights)
         pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
@@ -328,12 +343,13 @@ def get_top_gradcam_predictions(model, img_array, predictions, top_k=3):
                 'overlay': overlay
             })
         except Exception as e:
-            error_msg = f"Error generating Grad-CAM for disease index {idx}: {str(e)}"
-            print(error_msg)  # Log to console
-            errors.append(error_msg)
+            # Silently skip errors - don't pollute logs
+            # Grad-CAM failures are non-critical (predictions still work)
+            errors.append(str(e))
+            continue
 
-    # Log summary if there were errors
-    if errors:
-        print(f"Grad-CAM generation completed with {len(errors)} error(s). Generated {len(results)}/{top_k} visualizations.")
+    # Only log if ALL Grad-CAMs failed (indicates a real problem)
+    if len(errors) == top_k and len(results) == 0:
+        print(f"Warning: All Grad-CAM visualizations failed. Predictions still available but explanations unavailable.")
 
     return results
