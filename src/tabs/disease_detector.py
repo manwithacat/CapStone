@@ -37,7 +37,7 @@ def render_disease_detector_tab(df, disease_colors=None):
     """
     # Initialize rate limiting in session state
     if 'last_prediction_time' not in st.session_state:
-        st.session_state.last_prediction_time = 0
+        st.session_state.last_prediction_time = None  # None = never predicted before
 
     # Memory management: Clear old cached predictions (keep only last 5)
     prediction_keys = [k for k in st.session_state.keys() if k.startswith('predictions_')]
@@ -132,19 +132,29 @@ def render_disease_detector_tab(df, disease_colors=None):
         else:
             # Button to pick random image with cooldown
             current_time = time.time()
-            time_since_last = current_time - st.session_state.last_prediction_time
             cooldown_seconds = 10.0
 
             # Check if in cooldown period
-            in_cooldown = time_since_last < cooldown_seconds
-
-            if in_cooldown:
-                remaining = int(cooldown_seconds - time_since_last) + 1
-                button_label = f"Next prediction available in: {remaining} seconds"
-                button_disabled = True
-            else:
+            if st.session_state.last_prediction_time is None:
+                # Never predicted before - button ready
+                in_cooldown = False
                 button_label = "🎲 Pick Random X-Ray"
                 button_disabled = False
+            else:
+                time_since_last = current_time - st.session_state.last_prediction_time
+                in_cooldown = time_since_last < cooldown_seconds
+
+                if in_cooldown:
+                    remaining = int(cooldown_seconds - time_since_last) + 1
+                    button_label = f"Next prediction available in: {remaining} seconds"
+                    button_disabled = True
+
+                    # Auto-refresh to update countdown (use fragment to avoid full rerun)
+                    time.sleep(1)
+                    st.rerun()
+                else:
+                    button_label = "🎲 Pick Random X-Ray"
+                    button_disabled = False
 
             if st.button(button_label, type="primary", width='stretch', disabled=button_disabled):
                 # Load metadata
