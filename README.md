@@ -1,7 +1,5 @@
 # Chest X-Ray Disease Detection and Classification
 
-![CI logo](https://codeinstitute.s3.amazonaws.com/fullstack/ci_logo_small.png)
-
 ## Executive Summary
 
 This project successfully implements an end-to-end machine learning pipeline for automated chest X-ray disease detection, demonstrating the complete journey from data collection through model training to production deployment. The system analyzes 112,120 medical images across 14 disease classes, achieving clinically useful performance for multiple conditions while providing interpretable predictions through Grad-CAM visualizations.
